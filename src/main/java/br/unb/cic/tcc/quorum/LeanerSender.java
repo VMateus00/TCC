@@ -3,8 +3,8 @@ package br.unb.cic.tcc.quorum;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumSender;
 
-public class ProposerSender extends QuorumSender {
-    public ProposerSender(int processId) {
+public class LeanerSender extends QuorumSender {
+    public LeanerSender(Integer processId) {
         super(processId);
     }
 
@@ -12,5 +12,4 @@ public class ProposerSender extends QuorumSender {
     public void replyReceived(QuorumMessage quorumMessage) {
         // TODO
     }
-
 }
