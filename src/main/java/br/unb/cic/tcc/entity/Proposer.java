@@ -26,7 +26,11 @@ public class Proposer extends Agent {
     }
 
     public void propose(){
+
         phase1A();
     }
 
+//    public boolean isCoordinator(){
+//        return getAgentId() == 1;
+//    }
 }
