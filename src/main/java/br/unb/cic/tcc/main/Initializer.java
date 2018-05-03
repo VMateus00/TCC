@@ -1,8 +1,9 @@
 package br.unb.cic.tcc.main;
 
+import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.entity.Leaner;
 import br.unb.cic.tcc.entity.Proposer;
-import br.unb.cic.tcc.quorum.*;
+import br.unb.cic.tcc.quorum.Quoruns;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -13,7 +14,6 @@ public class Initializer {
     public static final String PROPOSERS = "#Proposers";
     public static final String LEANERS = "#Leaners";
     public static final String ACCEPTORS = "#Acceptors";
-    private static int AGENT_ID = 1;
 
     private static Quoruns quoruns = Quoruns.getSingleton();
 
@@ -60,6 +60,7 @@ public class Initializer {
                         createLeaner(id, host, port);
                         break;
                     case ACCEPTORS:
+                        createAcceptor(id, host, port);
                         break;
                     default:
                         break;
@@ -70,20 +71,14 @@ public class Initializer {
     }
 
     private static void createProposer(int id, String host, int port){
-        ProposerSender proposerSender = new ProposerSender(AGENT_ID);
-        ProposerReplica proposerReplica = new ProposerReplica(id, host, port);
-        quoruns.getProposers().add(new Proposer(AGENT_ID++, proposerReplica, proposerSender));
+        quoruns.getProposers().add(new Proposer(id, host, port));
     }
 
     private static void createLeaner(int id, String host, int port){
-        LeanerSender leanerSender = new LeanerSender(AGENT_ID);
-        LeanerReplica leanerReplica = new LeanerReplica(id, host, port);
-        quoruns.getLeaners().add(new Leaner(AGENT_ID++, leanerReplica, leanerSender));
+        quoruns.getLeaners().add(new Leaner(id, host, port));
     }
 
-//    private static void createAcceptor(int id, String host, int port){
-//        LeanerSender leanerSender = new LeanerSender(AGENT_ID);
-//        LeanerReplica leanerReplica = new LeanerReplica(id, host, port);
-//        leaners.add(new Leaner(AGENT_ID++, leanerReplica, leanerSender));
-//    }
+    private static void createAcceptor(int id, String host, int port){
+        quoruns.getAcceptors().add(new Acceptor(id, host, port));
+    }
 }

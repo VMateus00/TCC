@@ -1,28 +1,30 @@
 package br.unb.cic.tcc.quorum;
 
-import br.unb.cic.tcc.entity.Proposer;
+import br.unb.cic.tcc.entity.Acceptor;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
-public class ProposerReplica extends QuorumReplica {
+public class AcceptorReplica extends QuorumReplica {
 
-    private Proposer proposer;
-    private ProposerSender proposerSender;
+    private Acceptor acceptor;
+    private AcceptorSender acceptorSender;
 
-    public ProposerReplica(int id, String host, int port, Proposer proposer, ProposerSender proposerSender) {
+    public AcceptorReplica(int id, String host, int port, Acceptor acceptor, AcceptorSender acceptorSender) {
         super(id, "", host, port);
 
-        this.proposer = proposer;
-        this.proposerSender = proposerSender;
+        this.acceptor = acceptor;
+        this.acceptorSender = acceptorSender;
     }
 
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
+        // TODO
         return null;
     }
 
     @Override
     public QuorumMessage executeReconfigurationMessage(QuorumMessage quorumMessage) {
+        // TODO
         return null;
     }
 }

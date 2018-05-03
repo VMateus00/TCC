@@ -1,8 +1,8 @@
 package br.unb.cic.tcc.entity;
 
+import br.unb.cic.tcc.quorum.LeanerReplica;
+import br.unb.cic.tcc.quorum.LeanerSender;
 import quorum.communication.QuorumMessage;
-import quorum.core.QuorumReplica;
-import quorum.core.QuorumSender;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +11,14 @@ public class Leaner extends Agent {
 
     private Set<QuorumMessage> deliveredMessages = new HashSet<>();
 
-    public Leaner(Integer agentId, QuorumReplica quorumReplica, QuorumSender quorumSender) {
-        super(agentId, quorumReplica, quorumSender);
+    public Leaner(int id, String host, int port) {
+        int agentId = nextId();
+
+        LeanerSender leanerSender = new LeanerSender(agentId);
+        LeanerReplica leanerReplica = new LeanerReplica(id, host, port, this, leanerSender);
+
+        setAgentId(agentId);
+        setQuorumSender(leanerSender);
+        setQuorumReplica(leanerReplica);
     }
 }

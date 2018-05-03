@@ -1,16 +1,33 @@
 package br.unb.cic.tcc.entity;
 
-import quorum.core.QuorumReplica;
-import quorum.core.QuorumSender;
+import br.unb.cic.tcc.quorum.ProposerReplica;
+import br.unb.cic.tcc.quorum.ProposerSender;
 
 public class Proposer extends Agent {
 
-    public Proposer(Integer agentId, QuorumReplica quorumReplica, QuorumSender quorumSender) {
-        super(agentId, quorumReplica, quorumSender);
+    // TODO revisar uma melhor solucao
+    public Proposer(int id, String host, int port) {
+        int agentId = nextId();
+        ProposerSender proposerSender = new ProposerSender(agentId);
+        ProposerReplica proposerReplica = new ProposerReplica(id, host, port, this, proposerSender);
+
+        setAgentId(agentId);
+        setQuorumReplica(proposerReplica);
+        setQuorumSender(proposerSender);
     }
 
     public void phase1A(){
+        // IF
+//        c = C(r)
+//        crnd[c] < r
+        if(isCoordinator()){ // verificar se é mesmo essa a condição
+            // current round proposer
+            // TODO
+            // current round cordinator recebe r?  (crd[c] <- r)
+            //cval recebe vazio (cval[c] <- none)
 
+//            send msg to ACCEPTOR
+        }
     }
 
     public void phase2A(){
@@ -30,7 +47,7 @@ public class Proposer extends Agent {
         phase1A();
     }
 
-//    public boolean isCoordinator(){
-//        return getAgentId() == 1;
-//    }
+    public boolean isCoordinator(){
+        return getAgentId() == 1;
+    }
 }
