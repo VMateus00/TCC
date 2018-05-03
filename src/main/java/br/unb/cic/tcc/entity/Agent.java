@@ -6,11 +6,11 @@ import quorum.core.QuorumSender;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class Agent {
+public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
     private static int AGENT_ID = 1;
     private Integer agentId;
-    private QuorumReplica quorumReplica;
-    private QuorumSender quorumSender;
+    private QR quorumReplica;
+    private QS quorumSender;
 
     private Map<String, Object> vMap = new HashMap<>(); // TODO verifciar se é isso msm
 
@@ -22,19 +22,19 @@ public abstract class Agent {
         this.agentId = agentId;
     }
 
-    public QuorumReplica getQuorumReplica() {
+    public QR getQuorumReplica() {
         return quorumReplica;
     }
 
-    public void setQuorumReplica(QuorumReplica quorumReplica) {
+    public void setQuorumReplica(QR quorumReplica) {
         this.quorumReplica = quorumReplica;
     }
 
-    public QuorumSender getQuorumSender() {
+    public QS getQuorumSender() {
         return quorumSender;
     }
 
-    public void setQuorumSender(QuorumSender quorumSender) {
+    public void setQuorumSender(QS quorumSender) {
         this.quorumSender = quorumSender;
     }
 

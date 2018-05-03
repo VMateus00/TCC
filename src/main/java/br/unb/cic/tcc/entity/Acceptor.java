@@ -3,7 +3,7 @@ package br.unb.cic.tcc.entity;
 import br.unb.cic.tcc.quorum.AcceptorReplica;
 import br.unb.cic.tcc.quorum.AcceptorSender;
 
-public class Acceptor extends Agent {
+public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
     public Acceptor(int id, String host, int port) {
         int agentId = nextId();
 

@@ -11,6 +11,7 @@ public class Client implements Runnable {
     private QuorumSender quorumSender;
 
     public Client() {
+        // TODO a primeira msg nao é necessariamente feita a partir de msg
         this.quorumSender = new QuorumSender(CLIENT_ID) {
             @Override
             public void replyReceived(QuorumMessage quorumMessage) {

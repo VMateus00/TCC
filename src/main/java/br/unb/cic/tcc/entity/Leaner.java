@@ -7,7 +7,7 @@ import quorum.communication.QuorumMessage;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Leaner extends Agent {
+public class Leaner extends Agent<LeanerReplica, LeanerSender> {
 
     private Set<QuorumMessage> deliveredMessages = new HashSet<>();
 

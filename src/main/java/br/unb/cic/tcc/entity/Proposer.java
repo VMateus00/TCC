@@ -3,7 +3,7 @@ package br.unb.cic.tcc.entity;
 import br.unb.cic.tcc.quorum.ProposerReplica;
 import br.unb.cic.tcc.quorum.ProposerSender;
 
-public class Proposer extends Agent {
+public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
     // TODO revisar uma melhor solucao
     public Proposer(int id, String host, int port) {
@@ -27,6 +27,8 @@ public class Proposer extends Agent {
             //cval recebe vazio (cval[c] <- none)
 
 //            send msg to ACCEPTOR
+            int round = 0;
+            getQuorumSender().send1AToAcceptor(round);
         }
     }
 
