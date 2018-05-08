@@ -1,6 +1,8 @@
 package br.unb.cic.tcc.messages;
 
-public class ProposerToAcceptorMessage {
+import java.io.Serializable;
+
+public class ProposerToAcceptorMessage implements Serializable {
 
     private Integer round;
     private CFABCastMessageType CFABCastMessageType;

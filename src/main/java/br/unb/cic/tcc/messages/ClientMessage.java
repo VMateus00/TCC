@@ -1,10 +1,19 @@
 package br.unb.cic.tcc.messages;
 
-import quorum.communication.MessageType;
-import quorum.communication.QuorumMessage;
+import java.io.Serializable;
 
-public class ClientMessage extends QuorumMessage {
-    public ClientMessage(int sender, MessageType type) {
-        super(sender, type);
+public class ClientMessage implements Serializable {
+    private String msg;
+
+    public ClientMessage(String msg) {
+        this.msg = msg;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 }

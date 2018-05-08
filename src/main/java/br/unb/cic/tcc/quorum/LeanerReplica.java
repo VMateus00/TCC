@@ -1,6 +1,7 @@
 package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Leaner;
+import br.unb.cic.tcc.messages.ClientMessage;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
@@ -18,6 +19,9 @@ public class LeanerReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
+        if(quorumMessage.getMsg() instanceof ClientMessage){
+            return null;
+        }
         // TODO
         return null;
     }

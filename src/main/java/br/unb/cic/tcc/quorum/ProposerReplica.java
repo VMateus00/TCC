@@ -20,9 +20,10 @@ public class ProposerReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
-        if(quorumMessage instanceof ClientMessage){
+        if(quorumMessage.getMsg() instanceof ClientMessage){
             proposer.phase1A();
-        }else if(quorumMessage instanceof AcceptorToProposerMessage){
+            return quorumMessage;
+        }else if(quorumMessage.getMsg() instanceof AcceptorToProposerMessage){
             // TODO
         }
         return null;
