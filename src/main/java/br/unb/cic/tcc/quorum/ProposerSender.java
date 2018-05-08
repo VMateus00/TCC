@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.quorum;
 
+import br.unb.cic.tcc.messages.AcceptorToProposerMessage;
 import br.unb.cic.tcc.messages.CFABCastMessageType;
 import br.unb.cic.tcc.messages.ProposerToAcceptorMessage;
 import quorum.communication.MessageType;
@@ -13,7 +14,12 @@ public class ProposerSender extends QuorumSender {
 
     @Override
     public void replyReceived(QuorumMessage quorumMessage) {
-        // TODO
+        if(quorumMessage.getMsg() instanceof AcceptorToProposerMessage){
+            AcceptorToProposerMessage testMessage = (AcceptorToProposerMessage) quorumMessage.getMsg();
+            if(testMessage.getCfabCastMessageType() == CFABCastMessageType.PHASE_1B){
+                System.out.println("Terminou fase 1B \n\n\n");
+            }
+        }
     }
 
     public void send1AToAcceptor(int round) {

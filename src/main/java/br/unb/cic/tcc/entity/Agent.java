@@ -12,7 +12,7 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
     private QR quorumReplica;
     private QS quorumSender;
 
-    private Map<String, Object> vMap = new HashMap<>(); // TODO verifciar se é isso msm
+    private Map<String, Object> vMap = null;
 
     public Integer getAgentId() {
         return agentId;

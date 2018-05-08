@@ -2,6 +2,7 @@ package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.messages.ClientMessage;
+import br.unb.cic.tcc.messages.ProposerToAcceptorMessage;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
@@ -19,8 +20,15 @@ public class AcceptorReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
-        if(quorumMessage.getMsg() instanceof ClientMessage){
+        Object message = quorumMessage.getMsg();
+        if(message instanceof ClientMessage){
             return null;
+        }
+
+        if(message instanceof ProposerToAcceptorMessage){
+            ProposerToAcceptorMessage proposerToAcceptorMessage = (ProposerToAcceptorMessage) message;
+            quorumMessage.setMsg(acceptor.phase1b(proposerToAcceptorMessage.getRound()));
+            return quorumMessage;
         }
         // TODO
         return null;

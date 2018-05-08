@@ -1,9 +1,14 @@
 package br.unb.cic.tcc.entity;
 
+import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.quorum.ProposerReplica;
 import br.unb.cic.tcc.quorum.ProposerSender;
 
+import java.util.HashMap;
+
 public class Proposer extends Agent<ProposerReplica, ProposerSender> {
+    private int currentRound = 0;
+    private Object currentValue;
 
     // TODO revisar uma melhor solucao
     public Proposer(int id, String host, int port) {
@@ -16,18 +21,12 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
         setQuorumSender(proposerSender);
     }
 
-    public void phase1A(){
-        // IF
-//        c = C(r)
-//        crnd[c] < r
-        if(isCoordinator()){ // verificar se é mesmo essa a condição
+    public void phase1A(int round){
+        if(isCoordinator() && currentRound < round){ // verificar se é mesmo essa a condição
+            currentRound = round; // crnd[c] = <- r
             // current round proposer
-            // TODO
-            // current round cordinator recebe r?  (crd[c] <- r)
-            //cval recebe vazio (cval[c] <- none)
-
+            setvMap(new HashMap<>()); //cval recebe vazio (cval[c] <- none)
 //            send msg to ACCEPTOR
-            int round = 0;
             getQuorumSender().send1AToAcceptor(round);
         }
     }
@@ -44,12 +43,13 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
     }
 
-    public void propose(){
-
-        phase1A();
-    }
-
     public boolean isCoordinator(){
         return getAgentId() == 1;
+    }
+
+    public void propose(ClientMessage clientMessage) {
+//        TODO começar fase 1A
+        int round = 1; // TODO verificar qual o valor inicial do round
+        phase1A(round); // enviar isso para todos os proposers
     }
 }

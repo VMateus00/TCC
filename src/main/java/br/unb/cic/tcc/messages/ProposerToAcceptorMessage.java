@@ -11,4 +11,8 @@ public class ProposerToAcceptorMessage implements Serializable {
         this.round = round;
         this.CFABCastMessageType = cfabCastMessageType;
     }
+
+    public Integer getRound() {
+        return round;
+    }
 }
