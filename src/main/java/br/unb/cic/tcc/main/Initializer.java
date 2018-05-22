@@ -15,8 +15,6 @@ public class Initializer {
     public static final String LEANERS = "#Leaners";
     public static final String ACCEPTORS = "#Acceptors";
 
-    private static Quoruns quoruns = Quoruns.getSingleton();
-
     public static void initializeQuoruns(){
         createQuorunsReadingFile();
     }
@@ -71,14 +69,14 @@ public class Initializer {
     }
 
     private static void createProposer(int id, String host, int port){
-        quoruns.getProposers().add(new Proposer(id, host, port));
+        Quoruns.getProposers().add(new Proposer(id, host, port));
     }
 
     private static void createLeaner(int id, String host, int port){
-        quoruns.getLeaners().add(new Leaner(id, host, port));
+        Quoruns.getLeaners().add(new Leaner(id, host, port));
     }
 
     private static void createAcceptor(int id, String host, int port){
-        quoruns.getAcceptors().add(new Acceptor(id, host, port));
+        Quoruns.getAcceptors().add(new Acceptor(id, host, port));
     }
 }

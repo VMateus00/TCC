@@ -17,8 +17,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>unb.cic.tcc</groupId>
-            <artifactId>teste_dependencia</artifactId>
+            <groupId>unb.cic.alchieri</groupId>
+            <artifactId>dynamic_quoruns</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

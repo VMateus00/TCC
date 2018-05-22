@@ -26,4 +26,10 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
         }
         return null;
     }
+
+    public void recebe1AFromCoordinator(int round){
+        if(currentRound < round){
+            currentRound = round;
+        }
+    }
 }
