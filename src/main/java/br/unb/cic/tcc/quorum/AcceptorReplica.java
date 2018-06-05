@@ -27,7 +27,7 @@ public class AcceptorReplica extends QuorumReplica {
 
         if(message instanceof ProposerToAcceptorMessage){
             ProposerToAcceptorMessage proposerToAcceptorMessage = (ProposerToAcceptorMessage) message;
-            quorumMessage.setMsg(acceptor.phase1b(proposerToAcceptorMessage.getRound()));
+//            quorumMessage.setMsg(acceptor.phase1b(proposerToAcceptorMessage.getRound()));
             return quorumMessage;
         }
         // TODO

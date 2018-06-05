@@ -21,4 +21,8 @@ public class Leaner extends Agent<LeanerReplica, LeanerSender> {
         setQuorumSender(leanerSender);
         setQuorumReplica(leanerReplica);
     }
+
+    public void learn(){
+
+    }
 }
