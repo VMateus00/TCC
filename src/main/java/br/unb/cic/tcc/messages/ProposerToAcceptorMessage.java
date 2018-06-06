@@ -5,11 +5,11 @@ import java.io.Serializable;
 public class ProposerToAcceptorMessage implements Serializable {
 
     private Integer round;
-    private CFABCastMessageType CFABCastMessageType;
+    private ProtocolMessageType ProtocolMessageType;
 
-    public ProposerToAcceptorMessage(int round, CFABCastMessageType cfabCastMessageType) {
+    public ProposerToAcceptorMessage(int round, ProtocolMessageType protocolMessageType) {
         this.round = round;
-        this.CFABCastMessageType = cfabCastMessageType;
+        this.ProtocolMessageType = protocolMessageType;
     }
 
     public Integer getRound() {

@@ -22,7 +22,7 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
 //    public AcceptorToProposerMessage phase1b(int round){
 //        if(currentRound < round){ // rnd[a] < r
 //            currentRound = round;
-//            return new AcceptorToProposerMessage(this, round, CFABCastMessageType.PHASE_1B);
+//            return new AcceptorToProposerMessage(this, round, ProtocolMessageType.MESSAGE_1B);
 //        }
 //        return null;
 //    }

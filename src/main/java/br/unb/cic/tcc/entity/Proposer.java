@@ -1,7 +1,5 @@
 package br.unb.cic.tcc.entity;
 
-import br.unb.cic.tcc.messages.AcceptorToProposerMessage;
-import br.unb.cic.tcc.messages.CFABCastMessageType;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.Message1bToCoordinator;
 import br.unb.cic.tcc.quorum.ProposerReplica;
@@ -13,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CyclicBarrier;
 
 public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     private int currentRound = 0;
@@ -103,8 +100,8 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     public void propose(ClientMessage clientMessage) {
         // chama o coordinator para iniciar o round
         List<Proposer> coordinators = Quoruns.getCoordinators();
-        int coordinatorId = Quoruns.RANDOM.nextInt(coordinators.size());
-        Proposer coordinator = coordinators.get(coordinatorId - 1);
+        int coordinatorPosition = Quoruns.RANDOM.nextInt(coordinators.size());
+        Proposer coordinator = coordinators.get(coordinatorPosition == 0 ? coordinatorPosition : coordinatorPosition - 1);
 
         int round = 1;
         coordinator.phase1A(round);

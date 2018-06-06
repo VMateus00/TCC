@@ -5,12 +5,12 @@ import br.unb.cic.tcc.entity.Acceptor;
 public class AcceptorToProposerMessage {
     private Acceptor acceptor;
     private int round;
-    private CFABCastMessageType cfabCastMessageType;
+    private ProtocolMessageType protocolMessageType;
 
-    public AcceptorToProposerMessage(Acceptor acceptor, int round, CFABCastMessageType cfabCastMessageType) {
+    public AcceptorToProposerMessage(Acceptor acceptor, int round, ProtocolMessageType protocolMessageType) {
         this.acceptor = acceptor;
         this.round = round;
-        this.cfabCastMessageType = cfabCastMessageType;
+        this.protocolMessageType = protocolMessageType;
     }
 
     public Acceptor getAcceptor() {
@@ -21,7 +21,7 @@ public class AcceptorToProposerMessage {
         return round;
     }
 
-    public CFABCastMessageType getCfabCastMessageType() {
-        return cfabCastMessageType;
+    public ProtocolMessageType getProtocolMessageType() {
+        return protocolMessageType;
     }
 }

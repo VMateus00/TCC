@@ -26,7 +26,8 @@ public class Quoruns {
         if(clientMessage != null){
             // escolhe um proposer aleatoriamente do quorum:
             int size = quorum.getProposers().size();
-            Proposer proposer = quorum.getProposers().get(RANDOM.nextInt(size) - 1);
+            int positionProposerEscolhido = size == 1 ? 0 : RANDOM.nextInt(size) - 1;
+            Proposer proposer = quorum.getProposers().get(positionProposerEscolhido);
 
             // inicia o protocolo
             proposer.propose(clientMessage);
@@ -46,7 +47,7 @@ public class Quoruns {
     }
 
     public static List<Proposer> getCoordinators() {
-        if(coordinators == null){
+        if(coordinators.isEmpty()){
             coordinators = getProposers().stream()
                     .filter(p->p.isCoordinator()).collect(Collectors.toList());
         }
