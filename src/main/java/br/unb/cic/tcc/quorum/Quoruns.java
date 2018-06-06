@@ -53,4 +53,16 @@ public class Quoruns {
         }
         return coordinators;
     }
+
+    public static Integer[] idLeaners(){
+         return leaners.stream().map(p -> p.getAgentId()).toArray(Integer[]::new);
+    }
+
+    public static Integer[] idProposers(){
+         return proposers.stream().map(p -> p.getAgentId()).toArray(Integer[]::new);
+    }
+
+    public static Integer[] idAcceptors(){
+         return acceptors.stream().map(p -> p.getAgentId()).toArray(Integer[]::new);
+    }
 }
