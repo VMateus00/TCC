@@ -30,18 +30,13 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     public void phase1A(int round) {
         if (currentRound < round) {
             currentRound = round; // crnd[c] = <- r
-            // current round proposer
             setvMap(new HashMap<>()); // cval[c] <- none
 //            send msg to ACCEPTOR
 
-            List<Acceptor> acceptors = Quoruns.getAcceptors();
-            ArrayList<Message1bToCoordinator> resultMessages = new ArrayList<>();
+            QuorumMessage quorumMessage = new QuorumMessage();
+            // TODO message
+            getQuorumSender().sendTo(Quoruns.idAcceptors(), quorumMessage);
             //PASSO DE COMUNICACAO
-            // envia sinal 1A para todos os acceptors
-            acceptors.forEach(acceptor ->
-                    resultMessages.add(acceptor.recebe1AFromCoordinator(round)));
-        } else {
-            // error
         }
     }
 
