@@ -12,12 +12,10 @@ public class Leaner extends Agent<LeanerReplica, LeanerSender> {
     private Set<QuorumMessage> deliveredMessages = new HashSet<>();
 
     public Leaner(int id, String host, int port) {
-        int agentId = nextId();
-
-        LeanerSender leanerSender = new LeanerSender(agentId);
+        LeanerSender leanerSender = new LeanerSender(id);
         LeanerReplica leanerReplica = new LeanerReplica(id, host, port, this, leanerSender);
 
-        setAgentId(agentId);
+        setAgentId(id);
         setQuorumSender(leanerSender);
         setQuorumReplica(leanerReplica);
     }

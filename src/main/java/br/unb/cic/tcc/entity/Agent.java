@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
-    private static int AGENT_ID = 1;
     private Integer agentId;
     private QR quorumReplica;
     private QS quorumSender;
@@ -44,10 +43,6 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
 
     public void setvMap(Map<String, Object> vMap) {
         this.vMap = vMap;
-    }
-
-    protected int nextId(){
-        return AGENT_ID++;
     }
 
 }

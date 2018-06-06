@@ -15,15 +15,13 @@ import java.util.Map;
 public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     private int currentRound = 0;
     private Object currentValue;
-    private Boolean isColisionFastProposer = true; // TODO deixar aleatorio
+    private Boolean isColisionFastProposer = true; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
 
-    // TODO revisar uma melhor solucao
     public Proposer(int id, String host, int port) {
-        int agentId = nextId();
-        ProposerSender proposerSender = new ProposerSender(agentId);
+        ProposerSender proposerSender = new ProposerSender(id);
         ProposerReplica proposerReplica = new ProposerReplica(id, host, port, this, proposerSender);
 
-        setAgentId(agentId);
+        setAgentId(id);
         setQuorumReplica(proposerReplica);
         setQuorumSender(proposerSender);
     }

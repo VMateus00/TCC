@@ -9,12 +9,10 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
     private int roundAceitouUltimaVez = -1; // começa nunca tendo aceitado nada, por isso -1
 
     public Acceptor(int id, String host, int port) {
-        int agentId = nextId();
-
-        AcceptorSender acceptorSender = new AcceptorSender(agentId);
+        AcceptorSender acceptorSender = new AcceptorSender(id);
         AcceptorReplica acceptorReplica = new AcceptorReplica(id, host, port, this,  acceptorSender);
 
-        setAgentId(agentId);
+        setAgentId(id);
         setQuorumSender(acceptorSender);
         setQuorumReplica(acceptorReplica);
     }

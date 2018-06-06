@@ -49,7 +49,7 @@ public class Quoruns {
     public static List<Proposer> getCoordinators() {
         if(coordinators.isEmpty()){
             coordinators = getProposers().stream()
-                    .filter(p->p.isCoordinator()).collect(Collectors.toList());
+                    .filter(Proposer::isCoordinator).collect(Collectors.toList());
         }
         return coordinators;
     }
