@@ -17,26 +17,13 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
         setQuorumReplica(acceptorReplica);
     }
 
-//    public AcceptorToProposerMessage phase1b(int round){
-//        if(currentRound < round){ // rnd[a] < r
-//            currentRound = round;
-//            return new AcceptorToProposerMessage(this, round, ProtocolMessageType.MESSAGE_1B);
-//        }
-//        return null;
-//    }
-
-    public Message1bToCoordinator recebe1AFromCoordinator(int round){
-        return phase1b(round);
-    }
-
-    private Message1bToCoordinator phase1b(int round) {
+    public void phase1b(int round) {
         if(currentRound < round){
             currentRound = round;
             // envia 1B, round, valor round e
             // PASSO DE COMUNICACAO
-            return new Message1bToCoordinator(round, this.getAgentId().intValue(), roundAceitouUltimaVez, this.getvMap());
+            // TODO
         }
-        return null;
     }
 
     public void phase2b(int round) {

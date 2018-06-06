@@ -1,8 +1,8 @@
 package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Acceptor;
-import br.unb.cic.tcc.messages.ClientMessage;
-import br.unb.cic.tcc.messages.ProposerToAcceptorMessage;
+import br.unb.cic.tcc.messages.ProtocolMessage;
+import br.unb.cic.tcc.messages.ProtocolMessageType;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
@@ -20,17 +20,12 @@ public class AcceptorReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
-        Object message = quorumMessage.getMsg();
-        if(message instanceof ClientMessage){
-            return null;
-        }
+        ProtocolMessage message = (ProtocolMessage) quorumMessage.getMsg();
 
-        if(message instanceof ProposerToAcceptorMessage){
-            ProposerToAcceptorMessage proposerToAcceptorMessage = (ProposerToAcceptorMessage) message;
-//            quorumMessage.setMsg(acceptor.phase1b(proposerToAcceptorMessage.getRound()));
-            return quorumMessage;
+        if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
+            acceptor.phase1b(message.getRound());
+            System.out.println("Acceptor: "+ acceptor.getAgentId() + "chamou a phase1b");
         }
-        // TODO
         return null;
     }
 

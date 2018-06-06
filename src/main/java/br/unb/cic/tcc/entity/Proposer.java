@@ -1,13 +1,14 @@
 package br.unb.cic.tcc.entity;
 
 import br.unb.cic.tcc.messages.ClientMessage;
-import br.unb.cic.tcc.messages.Message1bToCoordinator;
+import br.unb.cic.tcc.messages.ProtocolMessage;
+import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.ProposerReplica;
 import br.unb.cic.tcc.quorum.ProposerSender;
 import br.unb.cic.tcc.quorum.Quoruns;
+import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,12 +32,10 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
         if (currentRound < round) {
             currentRound = round; // crnd[c] = <- r
             setvMap(new HashMap<>()); // cval[c] <- none
-//            send msg to ACCEPTOR
 
-            QuorumMessage quorumMessage = new QuorumMessage();
-            // TODO message
+            ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, round, null);
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idAcceptors(), quorumMessage);
-            //PASSO DE COMUNICACAO
         }
     }
 
