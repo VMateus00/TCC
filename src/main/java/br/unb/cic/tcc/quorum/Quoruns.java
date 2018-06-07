@@ -1,6 +1,7 @@
 package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Acceptor;
+import br.unb.cic.tcc.entity.Agent;
 import br.unb.cic.tcc.entity.Leaner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.messages.ClientMessage;
@@ -55,14 +56,18 @@ public class Quoruns {
     }
 
     public static int[] idLeaners(){
-         return leaners.stream().mapToInt(p -> p.getAgentId()).toArray();
+         return leaners.stream().mapToInt(Leaner::getAgentId).toArray();
     }
 
     public static int[] idProposers(){
-         return proposers.stream().mapToInt(p -> p.getAgentId()).toArray();
+         return proposers.stream().mapToInt(Agent::getAgentId).toArray();
     }
 
     public static int[] idAcceptors(){
-         return acceptors.stream().mapToInt(p -> p.getAgentId()).toArray();
+         return acceptors.stream().mapToInt(Acceptor::getAgentId).toArray();
+    }
+
+    public static int[] idCoordinators() {
+        return coordinators.stream().mapToInt(Proposer::getAgentId).toArray();
     }
 }
