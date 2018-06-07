@@ -53,7 +53,8 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
         msgsRecebidas.add(protocolMessage); // TODO verificar com o Alchieri se é concorrente
 
         if (msgsRecebidas.size() == Quoruns.getAcceptors().size()
-                && isCoordinator() && currentRound == protocolMessage.getRound()
+                && isCoordinator()
+                && currentRound == protocolMessage.getRound()
                 && getvMap().isEmpty()) {
             // Recebe a resposta dos acceptors
 
