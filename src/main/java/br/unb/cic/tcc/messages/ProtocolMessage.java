@@ -4,10 +4,10 @@ import java.io.Serializable;
 
 public class ProtocolMessage implements Serializable {
     private ProtocolMessageType protocolMessageType;
-    private int round;
+    private Integer round;
     private Object message;
 
-    public ProtocolMessage(ProtocolMessageType protocolMessageType, int round, Object message) {
+    public ProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Object message) {
         this.protocolMessageType = protocolMessageType;
         this.round = round;
         this.message = message;
@@ -21,11 +21,11 @@ public class ProtocolMessage implements Serializable {
         this.protocolMessageType = protocolMessageType;
     }
 
-    public int getRound() {
+    public Integer getRound() {
         return round;
     }
 
-    public void setRound(int round) {
+    public void setRound(Integer round) {
         this.round = round;
     }
 

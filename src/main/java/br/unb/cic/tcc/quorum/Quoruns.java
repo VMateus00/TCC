@@ -55,6 +55,10 @@ public class Quoruns {
         return coordinators;
     }
 
+    public static  List<Proposer> getCFProposers(){
+        return proposers.stream().filter(Proposer::isColisionFastProposer).collect(Collectors.toList());
+    }
+
     public static int[] idLeaners(){
          return leaners.stream().mapToInt(Leaner::getAgentId).toArray();
     }
@@ -69,5 +73,9 @@ public class Quoruns {
 
     public static int[] idCoordinators() {
         return coordinators.stream().mapToInt(Proposer::getAgentId).toArray();
+    }
+
+    public static int[] idCFProposers() {
+        return getCFProposers().stream().filter(Proposer::isColisionFastProposer).mapToInt(Proposer::getAgentId).toArray();
     }
 }

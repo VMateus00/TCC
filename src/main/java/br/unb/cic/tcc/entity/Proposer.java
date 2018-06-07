@@ -84,23 +84,17 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
         }
     }
 
+    public void propose(ClientMessage clientMessage) {
+        ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, null, clientMessage);
+        QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
+        getQuorumSender().sendTo(Quoruns.idCFProposers(), quorumMessage);
+    }
+
     public boolean isCoordinator() {
         return getAgentId() == 1;
     }
 
-//    public void propose(ClientMessage clientMessage) {
-////        TODO começar fase 1A
-//        int round = 0; // TODO verificar qual o valor inicial do round
-//        phase1A(round); // enviar isso para todos os proposers
-//    }
-
-    public void propose(ClientMessage clientMessage) {
-        // chama o coordinator para iniciar o round
-        List<Proposer> coordinators = Quoruns.getCoordinators();
-        int coordinatorPosition = Quoruns.RANDOM.nextInt(coordinators.size());
-        Proposer coordinator = coordinators.get(coordinatorPosition == 0 ? coordinatorPosition : coordinatorPosition - 1);
-
-        int round = 1;
-        coordinator.phase1A(round);
+    public Boolean isColisionFastProposer() {
+        return isColisionFastProposer;
     }
 }
