@@ -1,7 +1,8 @@
 package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Proposer;
-import br.unb.cic.tcc.messages.ClientMessage;
+import br.unb.cic.tcc.messages.ProtocolMessage;
+import br.unb.cic.tcc.messages.ProtocolMessageType;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
@@ -19,10 +20,13 @@ public class ProposerReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
-        if(quorumMessage.getMsg() instanceof ClientMessage){
-            proposer.propose((ClientMessage) quorumMessage.getMsg());
-            return quorumMessage;
+        ProtocolMessage protocolMessage = (ProtocolMessage) quorumMessage.getMsg();
+        if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1B){
+            // TODO
+            System.out.println("Coordinator recebeu o 1B");
+
         }
+
         return null;
     }
 
