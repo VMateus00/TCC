@@ -6,6 +6,8 @@ import br.unb.cic.tcc.messages.ProtocolMessageType;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
+import java.util.List;
+
 public class ProposerReplica extends QuorumReplica {
 
     private Proposer proposer;
@@ -22,9 +24,8 @@ public class ProposerReplica extends QuorumReplica {
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
         ProtocolMessage protocolMessage = (ProtocolMessage) quorumMessage.getMsg();
         if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1B){
-            // TODO
             System.out.println("Coordinator recebeu o 1B");
-
+            getCoordinator().phase2Start(protocolMessage);
         }
 
         return null;
@@ -33,5 +34,12 @@ public class ProposerReplica extends QuorumReplica {
     @Override
     public QuorumMessage executeReconfigurationMessage(QuorumMessage quorumMessage) {
         return null;
+    }
+
+    private Proposer getCoordinator(){
+        List<Proposer> coordinators = Quoruns.getCoordinators();
+        int coordinatorPosition = Quoruns.RANDOM.nextInt(coordinators.size());
+
+        return coordinators.get(coordinatorPosition == 0 ? coordinatorPosition : coordinatorPosition - 1);
     }
 }

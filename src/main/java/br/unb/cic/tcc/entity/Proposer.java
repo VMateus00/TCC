@@ -17,6 +17,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     private int currentRound = 0;
     private Object currentValue;
     private Boolean isColisionFastProposer = true; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
+    List<ProtocolMessage> msgsRecebidas = null;
 
     public Proposer(int id, String host, int port) {
         ProposerSender proposerSender = new ProposerSender(id);
@@ -39,18 +40,22 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
         }
     }
 
-    public void phase2A(int round) {
+    public void phase2A(ProtocolMessage protocolMessage) {
         // TODO
-        if (isColisionFastProposer && currentRound == round && currentValue == null) {
+        if (isColisionFastProposer
+                && currentRound == protocolMessage.getRound()
+                && currentValue == null) {
 
         }
     }
 
-    public void phase2Start(int round) {
-        if (isCoordinator() && currentRound == round
+    public void phase2Start(ProtocolMessage protocolMessage) {
+        msgsRecebidas.add(protocolMessage); // TODO verificar com o Alchieri se é concorrente
+
+        if (msgsRecebidas.size() == Quoruns.getAcceptors().size()
+                && isCoordinator() && currentRound == protocolMessage.getRound()
                 && getvMap().isEmpty()) {
             // Recebe a resposta dos acceptors
-            List<QuorumMessage> msgsRecebidas = null;
 
             Object k = null;
             Object s = null; // depende de k
