@@ -7,3 +7,8 @@ Para ver o paper que discute os algoritmos [clique aqui](https://sbrc2017.ufpa.b
 ## Modo de Implementação
 Cada algoritmo é depende do anterior, então deve ser feito 
 primeiro o CFABCast para depois implementar o  BCFABCast e por ùltimo o USIG-BCFABCast.
+
+
+### Detalhes
+- NONE = isEmpty();
+- ⊥(Absurdo) = null;
