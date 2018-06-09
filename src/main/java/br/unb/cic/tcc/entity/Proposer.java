@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.entity;
 
+import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
@@ -9,15 +10,18 @@ import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     private int currentRound = 0;
     private Object currentValue;
     private Boolean isColisionFastProposer = true; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
-    List<ProtocolMessage> msgsRecebidas = null;
+    List<ProtocolMessage> msgsRecebidas = new ArrayList<>();
 
     public Proposer(int id, String host, int port) {
         ProposerSender proposerSender = new ProposerSender(id);
@@ -69,10 +73,17 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
                 && getvMap().isEmpty()) {
             // Recebe a resposta dos acceptors
 
-            Object k = null;
-            Object s = null; // depende de k
+            Integer k =  msgsRecebidas.stream()
+                    .map(p-> (Map<Constants, Object>)p.getMessage())
+                    .map(p->(Integer)p.get(Constants.V_RND))
+                    .max(Comparator.comparing(Integer::valueOf)).get();
 
-            if (s == null) {
+            List<Map<Constants, Object>> s = msgsRecebidas.stream()
+                    .map(p -> (Map<Constants, Object>) p.getMessage())
+                    .filter(p -> p.get(Constants.V_RND).equals(k) && p.get(Constants.V_VAL) != null)
+                    .collect(Collectors.toList());
+
+            if (s.isEmpty()) {
                 currentValue = null;
 //                send '2S', round, currentValue to Proposers Quorum
             } else {

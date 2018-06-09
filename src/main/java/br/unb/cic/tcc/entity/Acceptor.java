@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.entity;
 
+import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AcceptorReplica;
@@ -27,12 +28,11 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
         if(currentRound < round){
             currentRound = round;
             // envia 1B, round, valor round e
-            // PASSO DE COMUNICACAO
-            // TODO
-            HashMap<String, Object> map = new HashMap<>();
-            map.put("a", this.getAgentId());
-            map.put("vrnd", currentRound);
-            map.put("vval", getvMap());
+            HashMap<Constants, Object> map = new HashMap<>();
+            map.put(Constants.AGENT_TYPE, this.getClass());
+            map.put(Constants.AGENT_ID, this.getAgentId());
+            map.put(Constants.V_RND, currentRound);
+            map.put(Constants.V_VAL, getvMap());
             ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, round, map);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idCoordinators(), quorumMessage);
