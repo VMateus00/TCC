@@ -33,6 +33,11 @@ public class ProposerReplica extends QuorumReplica {
             proposer.phase2A(protocolMessage);
         }
 
+        if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A){
+            System.out.println("Colision fast proposer foi chamado");
+            proposer.phase2A(protocolMessage);
+        }
+
         return null;
     }
 

@@ -41,11 +41,22 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     }
 
     public void phase2A(ProtocolMessage protocolMessage) {
-        // TODO
+        // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
         if (isColisionFastProposer
                 && currentRound == protocolMessage.getRound()
                 && currentValue == null) {
 
+            currentValue = protocolMessage.getMessage();
+
+            ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), null);// TODO dados da msg incompletos
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
+
+            // V != null (verificar como ele vem, ainda nao fiz isso)
+            if (protocolMessage.getMessage() != null) {
+                getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(), quorumMessage);
+            } else {
+                getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
+            }
         }
     }
 
@@ -61,7 +72,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
             Object k = null;
             Object s = null; // depende de k
 
-            if(s == null){
+            if (s == null) {
                 currentValue = null;
 //                send '2S', round, currentValue to Proposers Quorum
             } else {
