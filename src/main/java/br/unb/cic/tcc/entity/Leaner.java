@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.entity;
 
+import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.quorum.LeanerReplica;
 import br.unb.cic.tcc.quorum.LeanerSender;
 import quorum.communication.QuorumMessage;
@@ -20,7 +21,7 @@ public class Leaner extends Agent<LeanerReplica, LeanerSender> {
         setQuorumReplica(leanerReplica);
     }
 
-    public void learn(){
+    public void learn(ProtocolMessage protocolMessage){
 
     }
 }

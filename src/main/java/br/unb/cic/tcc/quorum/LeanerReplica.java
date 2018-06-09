@@ -2,6 +2,8 @@ package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Leaner;
 import br.unb.cic.tcc.messages.ClientMessage;
+import br.unb.cic.tcc.messages.ProtocolMessage;
+import br.unb.cic.tcc.messages.ProtocolMessageType;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
@@ -19,8 +21,9 @@ public class LeanerReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
-        if(quorumMessage.getMsg() instanceof ClientMessage){
-            return null;
+        ProtocolMessage protocolMessage = (ProtocolMessage) quorumMessage.getMsg();
+        if(ProtocolMessageType.MESSAGE_2B == protocolMessage.getProtocolMessageType()){
+            leaner.learn(protocolMessage);
         }
         // TODO
         return null;
@@ -28,7 +31,7 @@ public class LeanerReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeReconfigurationMessage(QuorumMessage quorumMessage) {
-        // TODO
+        // NOT USED IN THIS PROTOCOL
         return null;
     }
 }
