@@ -25,6 +25,11 @@ public class AcceptorReplica extends QuorumReplica {
         if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
             acceptor.phase1b(message.getRound());
             System.out.println("Acceptor: "+ acceptor.getAgentId() + "chamou a phase1b");
+
+        } else if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
+                ||message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S){
+            acceptor.phase2b(message);
+            System.out.println("Acceptor: "+ acceptor.getAgentId() + "chamou a phase1b");
         }
         return null;
     }

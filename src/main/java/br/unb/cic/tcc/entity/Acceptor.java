@@ -39,13 +39,14 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
         }
     }
 
-    public void phase2b(int round) {
+    public void phase2b(ProtocolMessage protocolMessage) {
         // CONDICAO_1: (received ("2S", r, v), v != null e roundAceitouUltimaVez < r ) ou getvMap() == null ou vazio
         // CONDICAO_2: receveid ("2A", r, (p, V)), V != null
 
         boolean condicao1 = true;
         boolean condicao2 = true;
 
+        int round = protocolMessage.getRound();
         if (currentRound <= round) {  // && condicao_1 ou condicao_2
             roundAceitouUltimaVez = round;
             currentRound = round;
