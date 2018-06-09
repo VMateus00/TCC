@@ -5,6 +5,7 @@ import br.unb.cic.tcc.entity.Agent;
 import br.unb.cic.tcc.entity.Leaner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.messages.ClientMessage;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,4 +79,9 @@ public class Quoruns {
     public static int[] idCFProposers() {
         return getCFProposers().stream().filter(Proposer::isColisionFastProposer).mapToInt(Proposer::getAgentId).toArray();
     }
+
+    public static int[] idAcceptorsAndCFProposers() {
+        return ArrayUtils.addAll(idAcceptors(), idCFProposers());
+    }
+
 }

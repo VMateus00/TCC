@@ -21,6 +21,13 @@
             <artifactId>dynamic_quoruns</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <!--Usado para copiar array-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.7</version>
+        </dependency>
     </dependencies>
 
     <build>
