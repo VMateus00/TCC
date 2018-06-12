@@ -44,19 +44,27 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
         }
     }
 
-    public void phase2A(ProtocolMessage protocolMessage) {
+    public void phase2A(ProtocolMessage protocolMessage) { // O que é o V?
         // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
         if (isColisionFastProposer
                 && currentRound == protocolMessage.getRound()
-                && currentValue == null) {
+                && currentValue == null
+                && ((protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null)
+                    || protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A &&  ((Map<Constants, Object>)protocolMessage.getMessage()).get(Constants.V_VAL) == null)) {
 
-            currentValue = protocolMessage.getMessage();
+            currentValue = null;
 
-            ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), null);// TODO dados da msg incompletos
+            HashMap<Constants, Object> map = new HashMap<>();
+            map.put(Constants.V_RND, currentRound);
+            map.put(Constants.AGENT_TYPE, this.getClass());
+            map.put(Constants.V_VAL, protocolMessage.getMessage());
+
+            ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), map);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             // V != null (verificar como ele vem, ainda nao fiz isso)
             if (protocolMessage.getMessage() != null) {
+                // TODO verificar PQ FAZER ISSO?
                 getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(), quorumMessage);
             } else {
                 getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
@@ -111,7 +119,10 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     }
 
     public void propose(ClientMessage clientMessage) {
-        ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, null, clientMessage);
+        HashMap<Constants, Object> map = new HashMap<>();
+        map.put(Constants.V_RND, currentRound);
+        map.put(Constants.V_VAL, clientMessage);
+        ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, currentRound, map);
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
         getQuorumSender().sendTo(Quoruns.idCFProposers(), quorumMessage);
     }
