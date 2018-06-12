@@ -84,4 +84,7 @@ public class Quoruns {
         return ArrayUtils.addAll(idAcceptors(), idCFProposers());
     }
 
+    public static int[] idAcceptorsAndProposers() {
+        return ArrayUtils.addAll(idAcceptors(), idProposers());
+    }
 }

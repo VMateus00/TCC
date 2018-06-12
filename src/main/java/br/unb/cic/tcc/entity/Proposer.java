@@ -83,12 +83,15 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
                     .filter(p -> p.get(Constants.V_RND).equals(k) && p.get(Constants.V_VAL) != null)
                     .collect(Collectors.toList());
 
+            HashMap<Object, Object> argumentos = new HashMap<>();// TODO popular
+            ProtocolMessage messageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2S, protocolMessage.getRound(), argumentos);
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, messageToSend, getQuorumSender().getProcessId());
             if (s.isEmpty()) {
                 currentValue = null;
-//                send '2S', round, currentValue to Proposers Quorum
+                getQuorumSender().sendTo(Quoruns.idProposers(), quorumMessage);
             } else {
-                // setar valor de currentValue
-//              send '2S', round, currentValue to Proposers Quorum
+                // TODO setar valor de currentValue
+                getQuorumSender().sendTo(Quoruns.idAcceptorsAndProposers(), quorumMessage);
             }
         }
     }
