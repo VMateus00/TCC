@@ -13,6 +13,7 @@ import quorum.communication.QuorumMessage;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     public void phase1A(int round) {
         if (currentRound < round) {
             currentRound = round; // crnd[c] = <- r
-            setvMap(new HashMap<>()); // cval[c] <- none
+            getvMap().put(round, new HashSet<>());// cval[c] <- none
 
             ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, round, null);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
@@ -46,18 +47,21 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
     public void phase2A(ProtocolMessage protocolMessage) { // O que é o V?
         // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
+        Map<Constants, Object> messageMap = (Map<Constants, Object>) protocolMessage.getMessage();
         if (isColisionFastProposer
                 && currentRound == protocolMessage.getRound()
                 && currentValue == null
-                && ((protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null)
-                    || protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A &&  ((Map<Constants, Object>)protocolMessage.getMessage()).get(Constants.V_VAL) == null)) {
+                && ((protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && messageMap.get(Constants.V_VAL) != null)
+                    || (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
+                        && (Quoruns.isCFProposer((Integer)messageMap.get(Constants.AGENT_ID)))
+                        &&  messageMap.get(Constants.V_VAL) == null))) {
 
-            currentValue = null;
+            currentValue = messageMap.get(Constants.V_VAL);
 
             HashMap<Constants, Object> map = new HashMap<>();
             map.put(Constants.V_RND, currentRound);
             map.put(Constants.AGENT_TYPE, this.getClass());
-            map.put(Constants.V_VAL, protocolMessage.getMessage());
+            map.put(Constants.V_VAL, currentValue);
 
             ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), map);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());

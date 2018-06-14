@@ -1,6 +1,8 @@
 package br.unb.cic.tcc.entity;
 
 import br.unb.cic.tcc.definitions.Constants;
+import br.unb.cic.tcc.definitions.ValorAprendido;
+import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AcceptorReplica;
@@ -10,6 +12,7 @@ import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
     private int currentRound = 0;
@@ -40,26 +43,40 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
     }
 
     public void phase2b(ProtocolMessage protocolMessage) {
-        // CONDICAO_1: (received ("2S", r, v), v != null e roundAceitouUltimaVez < r ) ou getvMap() == null ou vazio
-        // CONDICAO_2: receveid ("2A", r, (p, V)), V != null
+        boolean condicao1 = getvMap().get(roundAceitouUltimaVez).isEmpty(); //vval[a] == none
+        boolean condicao2 = false;
 
-        boolean condicao1 = true;
-        boolean condicao2 = true;
+        Map<Constants, Object> message = (Map<Constants, Object>) protocolMessage.getMessage();
+        if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S){
+            condicao1 = (message.get(Constants.V_VAL) != null && roundAceitouUltimaVez < (Integer)message.get(Constants.V_RND)) || condicao1;
+        } else if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A){
+            condicao2 = message.get(Constants.V_VAL) != null;
+        }
 
         int round = protocolMessage.getRound();
-        if (currentRound <= round) {  // && condicao_1 ou condicao_2
+        if (currentRound <= round && (condicao1 || condicao2 )) {
             roundAceitouUltimaVez = round;
             currentRound = round;
 
             if (condicao1) {
-
-            } else if (condicao2 && (roundAceitouUltimaVez < round || getvMap().isEmpty())) {
-
+                ValorAprendido valorAprendido = new ValorAprendido((Integer) message.get(Constants.AGENT_ID), (ClientMessage) message.get(Constants.V_VAL));
+                getvMap().get(roundAceitouUltimaVez).add(valorAprendido);
+            } else if (condicao2 && (roundAceitouUltimaVez < round || getvMap().get(roundAceitouUltimaVez).isEmpty())) {
+                // TODO colocar os valores dos outros CFProposers como nulos
             } else {
-
+                ValorAprendido valorAprendido = new ValorAprendido((Integer) message.get(Constants.AGENT_ID), (ClientMessage) message.get(Constants.V_VAL));
+                getvMap().get(roundAceitouUltimaVez).add(valorAprendido);
             }
 
-            // send 2b, a, r, vval[a] to L
+            Map<Constants, Object> msgToLeaner = new HashMap<>(); // TODO populate msg
+            msgToLeaner.put(Constants.V_VAL, getvMap());
+            msgToLeaner.put(Constants.V_RND, round);
+            msgToLeaner.put(Constants.AGENT_TYPE, this.getClass());
+            msgToLeaner.put(Constants.AGENT_ID, this.getAgentId());
+
+            ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, msgToLeaner);
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
         }
     }
 }

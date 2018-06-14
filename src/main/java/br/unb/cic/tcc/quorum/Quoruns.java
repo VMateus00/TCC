@@ -80,6 +80,11 @@ public class Quoruns {
         return getCFProposers().stream().filter(Proposer::isColisionFastProposer).mapToInt(Proposer::getAgentId).toArray();
     }
 
+    // false se nao pertence aos CFProposers ou se nao for
+    public static boolean isCFProposer(int id){
+        return getCFProposers().stream().filter(Proposer::isColisionFastProposer).anyMatch(p->p.getAgentId().equals(id));
+    }
+
     public static int[] idAcceptorsAndCFProposers() {
         return ArrayUtils.addAll(idAcceptors(), idCFProposers());
     }
