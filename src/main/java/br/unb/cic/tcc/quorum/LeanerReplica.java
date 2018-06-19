@@ -24,6 +24,8 @@ public class LeanerReplica extends QuorumReplica {
         ProtocolMessage protocolMessage = (ProtocolMessage) quorumMessage.getMsg();
         if(ProtocolMessageType.MESSAGE_2B == protocolMessage.getProtocolMessageType()){
             leaner.learn(protocolMessage);
+        } else if(ProtocolMessageType.MESSAGE_2A == protocolMessage.getProtocolMessageType()){
+            // leanner coloca na lista de proposers nao aprendidos
         }
         // TODO
         return null;

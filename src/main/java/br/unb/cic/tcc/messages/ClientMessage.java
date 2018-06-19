@@ -16,4 +16,11 @@ public class ClientMessage implements Serializable {
     public void setMsg(String msg) {
         this.msg = msg;
     }
+
+    @Override
+    public String toString() {
+        return "ClientMessage{" +
+                "msg='" + msg + '\'' +
+                '}';
+    }
 }

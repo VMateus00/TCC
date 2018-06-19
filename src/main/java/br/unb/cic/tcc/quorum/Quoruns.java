@@ -28,7 +28,8 @@ public class Quoruns {
         if(clientMessage != null){
             // escolhe um proposer aleatoriamente do quorum:
             int size = quorum.getProposers().size();
-            int positionProposerEscolhido = size == 1 ? 0 : RANDOM.nextInt(size) - 1;
+            int positionProposerEscolhido = RANDOM.nextInt(size) - 1;
+            positionProposerEscolhido = positionProposerEscolhido > 0 ? positionProposerEscolhido : 0;
             Proposer proposer = quorum.getProposers().get(positionProposerEscolhido);
 
             // inicia o protocolo

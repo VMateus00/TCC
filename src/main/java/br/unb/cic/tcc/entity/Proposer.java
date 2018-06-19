@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Proposer extends Agent<ProposerReplica, ProposerSender> {
+    public static Integer roundAtual = 1;
+
+
     private int currentRound = 0;
     private Object currentValue;
     private Boolean isColisionFastProposer = true; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
@@ -46,6 +49,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     }
 
     public void phase2A(ProtocolMessage protocolMessage) { // O que é o V?
+        System.out.println("Proposer("+getAgentId()+") começou a fase 2A");
         // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
         Map<Constants, Object> messageMap = (Map<Constants, Object>) protocolMessage.getMessage();
         if (isColisionFastProposer
@@ -54,7 +58,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
                 && ((protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && messageMap.get(Constants.V_VAL) != null)
                     || (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                         && (Quoruns.isCFProposer((Integer)messageMap.get(Constants.AGENT_ID)))
-                        &&  messageMap.get(Constants.V_VAL) == null))) {
+                        &&  messageMap.get(Constants.V_VAL) != null))) {
 
             currentValue = messageMap.get(Constants.V_VAL);
 
@@ -67,7 +71,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             // V != null (verificar como ele vem, ainda nao fiz isso)
-            if (protocolMessage.getMessage() != null) {
+            if (messageMap.get(Constants.V_VAL) != null) {
                 // TODO verificar PQ FAZER ISSO?
                 getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(), quorumMessage);
             } else {
@@ -129,6 +133,8 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
         ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, currentRound, map);
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
         getQuorumSender().sendTo(Quoruns.idCFProposers(), quorumMessage);
+
+        System.out.println("Proposer ("+getAgentId()+") enviou uma proposta para os CFProposers");
     }
 
     public boolean isCoordinator() {

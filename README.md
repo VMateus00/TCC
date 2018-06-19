@@ -12,3 +12,5 @@ primeiro o CFABCast para depois implementar o  BCFABCast e por ùltimo o USIG-BC
 ### Detalhes
 - NONE = isEmpty();
 - ⊥(Absurdo) = null;
+
+O arquivo currentView deve ser gerado pelo sistema ao iniciar (Ele deve ser apagado e gerado novamente se for atualizado o numero de instancias (file: system.config => property:system.initial.view)).

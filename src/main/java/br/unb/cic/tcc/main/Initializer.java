@@ -17,7 +17,7 @@ public class Initializer {
 
     public static void initializeQuoruns(){
         createQuorunsReadingFile();
-        initializeProtocol();
+//        initializeProtocol();
     }
 
     private static void initializeProtocol() {
@@ -48,8 +48,8 @@ public class Initializer {
     }
 
     private static String insertOnQuorum(BufferedReader bufferedReader, String quorumName) throws IOException {
-        String actualLine;
-        while (!(actualLine = bufferedReader.readLine()).startsWith("#")){
+        String actualLine = bufferedReader.readLine();
+        while (actualLine != null && !actualLine.startsWith("#")){
             StringTokenizer str = new StringTokenizer(actualLine," ");
             if(str.countTokens() > 2){
                 int id = Integer.valueOf(str.nextToken());
@@ -70,6 +70,7 @@ public class Initializer {
                         break;
                 }
             }
+            actualLine = bufferedReader.readLine();
         }
         return actualLine;
     }

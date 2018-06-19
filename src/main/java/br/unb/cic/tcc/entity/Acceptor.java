@@ -1,7 +1,6 @@
 package br.unb.cic.tcc.entity;
 
 import br.unb.cic.tcc.definitions.Constants;
-import br.unb.cic.tcc.definitions.ValorAprendido;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
@@ -12,7 +11,9 @@ import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
     private int currentRound = 0;
@@ -43,7 +44,13 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
     }
 
     public void phase2b(ProtocolMessage protocolMessage) {
-        boolean condicao1 = getvMap().get(roundAceitouUltimaVez).isEmpty(); //vval[a] == none
+        System.out.println("Acceptor("+getAgentId()+") começou a fase 2b");
+        Set<ClientMessage> vMapLastRound = getvMap().get(roundAceitouUltimaVez);
+        if( vMapLastRound == null){
+            vMapLastRound = new HashSet<>();
+            getvMap().put(roundAceitouUltimaVez, vMapLastRound);
+        }
+        boolean condicao1 = vMapLastRound.isEmpty(); //vval[a] == none
         boolean condicao2 = false;
 
         Map<Constants, Object> message = (Map<Constants, Object>) protocolMessage.getMessage();
@@ -59,17 +66,17 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
             currentRound = round;
 
             if (condicao1) {
-                ValorAprendido valorAprendido = new ValorAprendido((Integer) message.get(Constants.AGENT_ID), (ClientMessage) message.get(Constants.V_VAL));
-                getvMap().get(roundAceitouUltimaVez).add(valorAprendido);
-            } else if (condicao2 && (roundAceitouUltimaVez < round || getvMap().get(roundAceitouUltimaVez).isEmpty())) {
+//                ValorAprendido valorAprendido = new ValorAprendido((Integer) message.get(Constants.AGENT_ID), (ClientMessage) message.get(Constants.V_VAL));
+                vMapLastRound.add((ClientMessage) message.get(Constants.V_VAL));
+            } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
                 // TODO colocar os valores dos outros CFProposers como nulos
             } else {
-                ValorAprendido valorAprendido = new ValorAprendido((Integer) message.get(Constants.AGENT_ID), (ClientMessage) message.get(Constants.V_VAL));
-                getvMap().get(roundAceitouUltimaVez).add(valorAprendido);
+//                ValorAprendido valorAprendido = new ValorAprendido((Integer) message.get(Constants.AGENT_ID), (ClientMessage) message.get(Constants.V_VAL));
+                vMapLastRound.add((ClientMessage) message.get(Constants.V_VAL));
             }
 
             Map<Constants, Object> msgToLeaner = new HashMap<>(); // TODO populate msg
-            msgToLeaner.put(Constants.V_VAL, getvMap());
+            msgToLeaner.put(Constants.V_VAL, getSetFromVMap(roundAceitouUltimaVez));
             msgToLeaner.put(Constants.V_RND, round);
             msgToLeaner.put(Constants.AGENT_TYPE, this.getClass());
             msgToLeaner.put(Constants.AGENT_ID, this.getAgentId());
