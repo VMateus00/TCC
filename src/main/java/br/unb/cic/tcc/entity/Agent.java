@@ -5,7 +5,6 @@ import quorum.core.QuorumReplica;
 import quorum.core.QuorumSender;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,7 +13,8 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
     private QR quorumReplica;
     private QS quorumSender;
 
-    private Map<Integer, Set<ClientMessage>> vMap = new HashMap<>();
+    // VMAP<ROUND, MAP<PROPOSER_ID, MSG>>
+    private Map<Integer, Map<Integer, Set<ClientMessage>>> vMap = new HashMap<>();
 
     public Integer getAgentId() {
         return agentId;
@@ -40,20 +40,7 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         this.quorumSender = quorumSender;
     }
 
-    public Map<Integer, Set<ClientMessage>> getvMap() {
+    public Map<Integer, Map<Integer, Set<ClientMessage>>> getvMap() {
         return vMap;
-    }
-
-    public Set<ClientMessage> getSetFromVMap(Integer agentId){
-        Set<ClientMessage> clientMessages = vMap.get(agentId);
-        if(clientMessages == null){
-            clientMessages = new HashSet<>();
-            vMap.put(agentId, clientMessages);
-        }
-        return clientMessages;
-    }
-
-    public void setvMap(Map<Integer, Set<ClientMessage>> vMap) {
-        this.vMap = vMap;
     }
 }

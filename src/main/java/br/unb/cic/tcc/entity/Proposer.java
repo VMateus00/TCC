@@ -23,7 +23,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
 
     private int currentRound = 0;
-    private Object currentValue;
+    private Map<Integer, Object> currentValue = new HashMap<>();
     private Boolean isColisionFastProposer = true; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
     List<ProtocolMessage> msgsRecebidas = new ArrayList<>();
 
@@ -38,41 +38,34 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
     // Phase 1A só é executada por coordinator
     public void phase1A(int round) {
-        if (currentRound < round) {
-            currentRound = round; // crnd[c] = <- r
-            getvMap().put(round, new HashSet<>());// cval[c] <- none
-
-            ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, round, null);
-            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idAcceptors(), quorumMessage);
-        }
+        // TODO após concluir parte 1
     }
 
-    public void phase2A(ProtocolMessage protocolMessage) { // O que é o V?
+    public void phase2A(ProtocolMessage protocolMessage) {
         System.out.println("Proposer("+getAgentId()+") começou a fase 2A");
         // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
         Map<Constants, Object> messageMap = (Map<Constants, Object>) protocolMessage.getMessage();
-        if (isColisionFastProposer
-                && currentRound == protocolMessage.getRound()
-                && currentValue == null
-                && ((protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && messageMap.get(Constants.V_VAL) != null)
-                    || (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
-                        && (Quoruns.isCFProposer((Integer)messageMap.get(Constants.AGENT_ID)))
-                        &&  messageMap.get(Constants.V_VAL) != null))) {
 
-            currentValue = messageMap.get(Constants.V_VAL);
+        Object valMsgRecebida = messageMap.get(Constants.V_VAL);
+        boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && valMsgRecebida != null;
+        boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && Quoruns.isCFProposer((Integer)messageMap.get(Constants.AGENT_ID));
+
+        if (currentRound == protocolMessage.getRound()
+                && currentValue.get(currentRound) == null
+                && (condicao1 || condicao2)) {
+
+            currentValue.put(currentRound, valMsgRecebida);
 
             HashMap<Constants, Object> map = new HashMap<>();
             map.put(Constants.V_RND, currentRound);
             map.put(Constants.AGENT_TYPE, this.getClass());
-            map.put(Constants.V_VAL, currentValue);
+            map.put(Constants.V_VAL, valMsgRecebida);
 
             ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), map);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             // V != null (verificar como ele vem, ainda nao fiz isso)
-            if (messageMap.get(Constants.V_VAL) != null) {
-                // TODO verificar PQ FAZER ISSO?
+            if (valMsgRecebida != null) {
                 getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(), quorumMessage);
             } else {
                 getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
@@ -81,49 +74,11 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     }
 
     public void phase2Start(ProtocolMessage protocolMessage) {
-        msgsRecebidas.add(protocolMessage); // TODO verificar com o Alchieri se é concorrente
-
-        if (msgsRecebidas.size() == Quoruns.getAcceptors().size()
-                && isCoordinator()
-                && currentRound == protocolMessage.getRound()
-                && getvMap().isEmpty()) {
-            // Recebe a resposta dos acceptors
-
-            Integer k =  msgsRecebidas.stream()
-                    .map(p-> (Map<Constants, Object>)p.getMessage())
-                    .map(p->(Integer)p.get(Constants.V_RND))
-                    .max(Comparator.comparing(Integer::valueOf)).get();
-
-            List<Map<Constants, Object>> s = msgsRecebidas.stream()
-                    .map(p -> (Map<Constants, Object>) p.getMessage())
-                    .filter(p -> p.get(Constants.V_RND).equals(k) && p.get(Constants.V_VAL) != null)
-                    .collect(Collectors.toList());
-
-            HashMap<Object, Object> argumentos = new HashMap<>();// TODO popular
-            ProtocolMessage messageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2S, protocolMessage.getRound(), argumentos);
-            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, messageToSend, getQuorumSender().getProcessId());
-            if (s.isEmpty()) {
-                currentValue = null;
-                getQuorumSender().sendTo(Quoruns.idProposers(), quorumMessage);
-            } else {
-                // TODO setar valor de currentValue
-                getQuorumSender().sendTo(Quoruns.idAcceptorsAndProposers(), quorumMessage);
-            }
-        }
+        // TODO após concluir parte 1
     }
 
     public void phase2Prepare(int round, Map<String, Object> vMapCoordinator) {
-        // isProposer == default,
-        // Recebeu 2S
-        if (currentRound < round) {
-            currentRound = round;
-
-            if (vMapCoordinator == null) {
-                currentValue = null;
-            } else {
-                currentValue = vMapCoordinator; // ??? pVal[p] = v(p) alinhar com o professor
-            }
-        }
+        // TODO após concluir parte 1
     }
 
     public void propose(ClientMessage clientMessage) {
