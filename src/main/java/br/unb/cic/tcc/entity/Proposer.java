@@ -23,7 +23,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
 
     private int currentRound = 0;
-    private Map<Integer, Object> currentValue = new HashMap<>();
+    private Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
     private Boolean isColisionFastProposer = true; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
     List<ProtocolMessage> msgsRecebidas = new ArrayList<>();
 
@@ -57,14 +57,12 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
             currentValue.put(currentRound, valMsgRecebida);
 
             HashMap<Constants, Object> map = new HashMap<>();
-            map.put(Constants.V_RND, currentRound);
-            map.put(Constants.AGENT_TYPE, this.getClass());
+            map.put(Constants.AGENT_ID, this.getAgentId());
             map.put(Constants.V_VAL, valMsgRecebida);
 
             ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), map);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
-            // V != null (verificar como ele vem, ainda nao fiz isso)
             if (valMsgRecebida != null) {
                 getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(), quorumMessage);
             } else {
@@ -83,8 +81,9 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
     public void propose(ClientMessage clientMessage) {
         HashMap<Constants, Object> map = new HashMap<>();
-        map.put(Constants.V_RND, currentRound);
         map.put(Constants.V_VAL, clientMessage);
+        map.put(Constants.AGENT_ID, this.getAgentId());
+
         ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, currentRound, map);
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
         getQuorumSender().sendTo(Quoruns.idCFProposers(), quorumMessage);

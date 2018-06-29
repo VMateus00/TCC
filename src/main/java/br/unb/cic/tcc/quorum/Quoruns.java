@@ -69,6 +69,10 @@ public class Quoruns {
          return proposers.stream().mapToInt(Agent::getAgentId).toArray();
     }
 
+    public static int[] idNCFProposers(){ // NOT COLISION FAST PROPOSERS
+         return proposers.stream().filter(p-> !p.isColisionFastProposer()).mapToInt(Proposer::getAgentId).toArray();
+    }
+
     public static int[] idAcceptors(){
          return acceptors.stream().mapToInt(Acceptor::getAgentId).toArray();
     }
