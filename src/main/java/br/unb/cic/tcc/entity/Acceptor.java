@@ -56,7 +56,9 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
 
             Integer agentId = (Integer) message.get(Constants.AGENT_ID);
             if (condicao1) {
-                vMapLastRound = (Map<Integer, Set<ClientMessage>>) message.get(Constants.V_VAL); // veio do Coordinator
+                HashSet<ClientMessage> clientMessages = new HashSet<>();
+                clientMessages.add((ClientMessage) message.get(Constants.V_VAL));
+                vMapLastRound.put((Integer) message.get(Constants.AGENT_ID), clientMessages);
                 // TODO atualizar o valor no mapa
             } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
                 vMapLastRound = getVmapLastRound();
