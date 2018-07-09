@@ -11,12 +11,9 @@ import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     public static Integer roundAtual = 1;
@@ -48,7 +45,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
         Object valMsgRecebida = messageMap.get(Constants.V_VAL);
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && valMsgRecebida != null;
-        boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && Quoruns.isCFProposer((Integer)messageMap.get(Constants.AGENT_ID));
+        boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && Quoruns.isCFProposerOnRound((Integer)messageMap.get(Constants.AGENT_ID), currentRound);
 
         if (currentRound == protocolMessage.getRound()
                 && currentValue.get(currentRound) == null
@@ -64,7 +61,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             if (valMsgRecebida != null) {
-                getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(), quorumMessage);
+                getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(currentRound), quorumMessage);
             } else {
                 getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
             }
@@ -86,7 +83,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
         ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, currentRound, map);
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
-        getQuorumSender().sendTo(Quoruns.idCFProposers(), quorumMessage);
+        getQuorumSender().sendTo(Quoruns.idCFProposers(currentRound), quorumMessage);
 
         System.out.println("Proposer ("+getAgentId()+") enviou uma proposta para os CFProposers");
     }

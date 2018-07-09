@@ -17,7 +17,7 @@ import java.util.Set;
 
 public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
     private int currentRound = 0;
-    private int roundAceitouUltimaVez = -1; // começa nunca tendo aceitado nada, por isso -1
+    private int roundAceitouUltimaVez = 0; // começa nunca tendo aceitado nada, por isso 0
 
     public Acceptor(int id, String host, int port) {
         AcceptorSender acceptorSender = new AcceptorSender(id);
@@ -57,6 +57,7 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
             Integer agentId = (Integer) message.get(Constants.AGENT_ID);
             if (condicao1) {
                 vMapLastRound = (Map<Integer, Set<ClientMessage>>) message.get(Constants.V_VAL); // veio do Coordinator
+                // TODO atualizar o valor no mapa
             } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
                 vMapLastRound = getVmapLastRound();
 
@@ -68,7 +69,7 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
                 }
                 proposedValuesByProposerReceived.add(clientMessage);
 
-                for (Integer proposerId : Quoruns.idNCFProposers()) {
+                for (Integer proposerId : Quoruns.idNCFProposers(currentRound)) {
                     Set<ClientMessage> proposedValues = vMapLastRound.get(proposerId);
                     if(proposedValues == null){
                         vMapLastRound.put(proposerId, new HashSet<>());

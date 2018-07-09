@@ -57,7 +57,7 @@ public class Quoruns {
         return coordinators;
     }
 
-    public static  List<Proposer> getCFProposers(){
+    public static  List<Proposer> getCFProposersOnRound(int round){
         return proposers.stream().filter(Proposer::isColisionFastProposer).collect(Collectors.toList());
     }
 
@@ -69,7 +69,7 @@ public class Quoruns {
          return proposers.stream().mapToInt(Agent::getAgentId).toArray();
     }
 
-    public static int[] idNCFProposers(){ // NOT COLISION FAST PROPOSERS
+    public static int[] idNCFProposers(int round){ // NOT COLISION FAST PROPOSERS
          return proposers.stream().filter(p-> !p.isColisionFastProposer()).mapToInt(Proposer::getAgentId).toArray();
     }
 
@@ -81,17 +81,17 @@ public class Quoruns {
         return coordinators.stream().mapToInt(Proposer::getAgentId).toArray();
     }
 
-    public static int[] idCFProposers() {
-        return getCFProposers().stream().filter(Proposer::isColisionFastProposer).mapToInt(Proposer::getAgentId).toArray();
+    public static int[] idCFProposers(int round) { // TODO evoluir para carregar somente os CFProposers do round atual
+        return getCFProposersOnRound(round).stream().filter(Proposer::isColisionFastProposer).mapToInt(Proposer::getAgentId).toArray();
     }
 
     // false se nao pertence aos CFProposers ou se nao for
-    public static boolean isCFProposer(int id){
-        return getCFProposers().stream().filter(Proposer::isColisionFastProposer).anyMatch(p->p.getAgentId().equals(id));
+    public static boolean isCFProposerOnRound(int agendId, int round){
+        return getCFProposersOnRound(round).stream().filter(Proposer::isColisionFastProposer).anyMatch(p->p.getAgentId().equals(agendId));
     }
 
-    public static int[] idAcceptorsAndCFProposers() {
-        return ArrayUtils.addAll(idAcceptors(), idCFProposers());
+    public static int[] idAcceptorsAndCFProposers(int round) {
+        return ArrayUtils.addAll(idAcceptors(), idCFProposers(round));
     }
 
     public static int[] idAcceptorsAndProposers() {
