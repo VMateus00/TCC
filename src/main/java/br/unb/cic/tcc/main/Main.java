@@ -6,7 +6,7 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         Initializer.initializeQuoruns();
 
-        new Client().run();
+//        new Client().run();
     }
 }
 

@@ -17,12 +17,12 @@ public class Initializer {
 
     public static void initializeQuoruns(){
         createQuorunsReadingFile();
-//        initializeProtocol();
+        initializeProtocol();
     }
 
     private static void initializeProtocol() {
         Proposer coordinator= Quoruns.getCoordinators().get(0);
-        coordinator.phase1A(1);
+        coordinator.phase1A();
     }
 
     private static void createQuorunsReadingFile() {
