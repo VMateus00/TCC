@@ -26,14 +26,16 @@ public class ProposerReplica extends QuorumReplica {
         if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1B){
             System.out.println("Coordinator recebeu o 1B");
             proposer.phase2Start(protocolMessage);
-        }
 
-        if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE){
+        } else if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE){
             System.out.println("Colision fast proposer foi chamado");
             proposer.phase2A(protocolMessage);
-        }
 
-        if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A){
+        } else if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S){
+            System.out.println("Fase 2Prepare foi chamada");
+            proposer.phase2Prepare(protocolMessage);
+
+        } else if(protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A){
             System.out.println("Colision fast proposer foi chamado");
             proposer.phase2A(protocolMessage);
         }

@@ -118,8 +118,17 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
         }
     }
 
-    public void phase2Prepare(int round, Map<String, Object> vMapCoordinator) {
-        // TODO após concluir parte 1
+    public void phase2Prepare(ProtocolMessage protocolMessage) {
+        if(currentRound < protocolMessage.getRound()){
+
+            Map<Constants, Object> msgVal = (Map<Constants, Object>) protocolMessage.getMessage();
+            Map<Integer, Set<ClientMessage>> msgFromCoordinator = (Map<Integer, Set<ClientMessage>>) msgVal.get(Constants.V_VAL);
+            if(msgFromCoordinator != null && msgFromCoordinator.get(getAgentId()) != null){
+                currentValue.put(currentRound, msgFromCoordinator.get(getAgentId())); // TODO testar
+            } else {
+                currentValue.put(currentRound, null);
+            }
+        }
     }
 
     public void propose(ClientMessage clientMessage) {
