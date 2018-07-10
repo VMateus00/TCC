@@ -1,7 +1,6 @@
 package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Leaner;
-import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import quorum.communication.QuorumMessage;
@@ -22,18 +21,15 @@ public class LeanerReplica extends QuorumReplica {
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
         ProtocolMessage protocolMessage = (ProtocolMessage) quorumMessage.getMsg();
-        if(ProtocolMessageType.MESSAGE_2B == protocolMessage.getProtocolMessageType()){
+        if(ProtocolMessageType.MESSAGE_2B == protocolMessage.getProtocolMessageType()
+                || ProtocolMessageType.MESSAGE_2A == protocolMessage.getProtocolMessageType()){
             leaner.learn(protocolMessage);
-        } else if(ProtocolMessageType.MESSAGE_2A == protocolMessage.getProtocolMessageType()){
-            // leanner coloca na lista de proposers nao aprendidos
         }
-        // TODO
         return null;
     }
 
     @Override
     public QuorumMessage executeReconfigurationMessage(QuorumMessage quorumMessage) {
-        // NOT USED IN THIS PROTOCOL
-        return null;
+        throw new UnsupportedOperationException("Not utilized in this protocol");
     }
 }

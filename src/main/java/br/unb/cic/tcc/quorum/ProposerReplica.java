@@ -45,7 +45,7 @@ public class ProposerReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeReconfigurationMessage(QuorumMessage quorumMessage) {
-        return null;
+        throw new UnsupportedOperationException("Not utilized in this protocol");
     }
 
     private Proposer getCoordinator(){

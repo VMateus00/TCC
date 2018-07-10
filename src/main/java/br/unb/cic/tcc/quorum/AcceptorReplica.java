@@ -36,7 +36,6 @@ public class AcceptorReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeReconfigurationMessage(QuorumMessage quorumMessage) {
-        // TODO
-        return null;
+        throw new UnsupportedOperationException("Not utilized in this protocol");
     }
 }
