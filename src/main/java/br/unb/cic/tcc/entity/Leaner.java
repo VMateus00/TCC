@@ -11,15 +11,12 @@ import br.unb.cic.tcc.quorum.Quoruns;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Leaner extends Agent<LeanerReplica, LeanerSender> {
-
-//    private Set<ClientMessage> learned = new HashSet<>();
 
     private Map<Integer, List<ProtocolMessage>> messagesFromAcceptors = new HashMap<>();
     private Map<Integer, List<ProtocolMessage>> messagesFromProposers = new HashMap<>();
@@ -64,10 +61,6 @@ public class Leaner extends Agent<LeanerReplica, LeanerSender> {
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()
                     .filter(p -> ((Map<Constants, Object>) p.getMessage()).get(Constants.V_VAL) == null)
                     .collect(Collectors.toList());
-
-            Map<Integer, Set<ClientMessage>> mapToLearn = new HashMap<>();
-
-//            List<Map<Constants, Object>> collect = protocolMessagesFromAcceptors.stream().map(v -> (Map<Constants, Object>) v.getMessage()).collect(Collectors.toList());
 
             Map<Integer, Set<ClientMessage>> q2bVals = new HashMap<>();
             protocolMessagesFromAcceptors.forEach(protocolMsgAcceptor->{
