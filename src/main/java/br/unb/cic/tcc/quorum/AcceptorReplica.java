@@ -23,7 +23,7 @@ public class AcceptorReplica extends QuorumReplica {
         ProtocolMessage message = (ProtocolMessage) quorumMessage.getMsg();
 
         if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
-            acceptor.phase1b(message.getRound());
+            acceptor.phase1b(message);
             System.out.println("Acceptor: "+ acceptor.getAgentId() + "chamou a phase1b");
 
         } else if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A

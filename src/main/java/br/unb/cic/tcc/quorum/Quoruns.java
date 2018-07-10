@@ -79,7 +79,7 @@ public class Quoruns {
          return acceptors.stream().mapToInt(Acceptor::getAgentId).toArray();
     }
 
-    public static int[] idCoordinators() {
+    public static int[] idCoordinators(int currentRound) { // TODO pegar coordinator do round
         return coordinators.stream().mapToInt(Proposer::getAgentId).toArray();
     }
 

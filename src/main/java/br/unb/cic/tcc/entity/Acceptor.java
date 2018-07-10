@@ -28,8 +28,19 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
         setQuorumReplica(acceptorReplica);
     }
 
-    public void phase1b(int round) {
-        // TODO após concluir parte 1
+    public void phase1b(ProtocolMessage protocolMessage) {
+        if(currentRound < protocolMessage.getRound() && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
+            currentRound = protocolMessage.getRound();
+
+            Map<Constants, Object> msg = new HashMap<>();
+            msg.put(Constants.AGENT_ID, getAgentId());
+            msg.put(Constants.V_VAL, getVmapLastRound());
+            msg.put(Constants.V_RND, roundAceitouUltimaVez);
+
+            ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, msg);
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(Quoruns.idCoordinators(currentRound), quorumMessage);
+        }
     }
 
     public void phase2b(ProtocolMessage protocolMessage) {
