@@ -9,13 +9,11 @@ import quorum.core.QuorumReplica;
 public class LeanerReplica extends QuorumReplica {
 
     private Leaner leaner;
-    private LeanerSender leanerSender;
 
-    public LeanerReplica(int id, String host, int port, Leaner leaner, LeanerSender leanerSender) {
+    public LeanerReplica(int id, String host, int port, Leaner leaner) {
         super(id, "", host, port);
 
         this.leaner = leaner;
-        this.leanerSender = leanerSender;
     }
 
     @Override

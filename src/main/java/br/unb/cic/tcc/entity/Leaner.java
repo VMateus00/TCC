@@ -23,7 +23,7 @@ public class Leaner extends Agent<LeanerReplica, LeanerSender> {
 
     public Leaner(int id, String host, int port) {
         LeanerSender leanerSender = new LeanerSender(id);
-        LeanerReplica leanerReplica = new LeanerReplica(id, host, port, this, leanerSender);
+        LeanerReplica leanerReplica = new LeanerReplica(id, host, port, this);
 
         setAgentId(id);
         setQuorumSender(leanerSender);

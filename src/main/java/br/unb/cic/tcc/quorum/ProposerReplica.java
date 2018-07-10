@@ -6,18 +6,13 @@ import br.unb.cic.tcc.messages.ProtocolMessageType;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
-import java.util.List;
-
 public class ProposerReplica extends QuorumReplica {
 
     private Proposer proposer;
-    private ProposerSender proposerSender;
 
-    public ProposerReplica(int id, String host, int port, Proposer proposer, ProposerSender proposerSender) {
+    public ProposerReplica(int id, String host, int port, Proposer proposer) {
         super(id, "", host, port);
-
         this.proposer = proposer;
-        this.proposerSender = proposerSender;
     }
 
     @Override
@@ -46,12 +41,5 @@ public class ProposerReplica extends QuorumReplica {
     @Override
     public QuorumMessage executeReconfigurationMessage(QuorumMessage quorumMessage) {
         throw new UnsupportedOperationException("Not utilized in this protocol");
-    }
-
-    private Proposer getCoordinator(){
-        List<Proposer> coordinators = Quoruns.getCoordinators();
-        int coordinatorPosition = Quoruns.RANDOM.nextInt(coordinators.size());
-
-        return coordinators.get(coordinatorPosition == 0 ? coordinatorPosition : coordinatorPosition - 1);
     }
 }

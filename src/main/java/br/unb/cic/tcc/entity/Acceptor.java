@@ -21,7 +21,7 @@ public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
 
     public Acceptor(int id, String host, int port) {
         AcceptorSender acceptorSender = new AcceptorSender(id);
-        AcceptorReplica acceptorReplica = new AcceptorReplica(id, host, port, this, acceptorSender);
+        AcceptorReplica acceptorReplica = new AcceptorReplica(id, host, port, this);
 
         setAgentId(id);
         setQuorumSender(acceptorSender);

@@ -27,7 +27,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
 
     public Proposer(int id, String host, int port) {
         ProposerSender proposerSender = new ProposerSender(id);
-        ProposerReplica proposerReplica = new ProposerReplica(id, host, port, this, proposerSender);
+        ProposerReplica proposerReplica = new ProposerReplica(id, host, port, this);
 
         setAgentId(id);
         setQuorumReplica(proposerReplica);

@@ -9,13 +9,11 @@ import quorum.core.QuorumReplica;
 public class AcceptorReplica extends QuorumReplica {
 
     private Acceptor acceptor;
-    private AcceptorSender acceptorSender;
 
-    public AcceptorReplica(int id, String host, int port, Acceptor acceptor, AcceptorSender acceptorSender) {
+    public AcceptorReplica(int id, String host, int port, Acceptor acceptor) {
         super(id, "", host, port);
 
         this.acceptor = acceptor;
-        this.acceptorSender = acceptorSender;
     }
 
     @Override
