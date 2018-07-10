@@ -16,6 +16,8 @@ public class Quoruns {
     public static final Random RANDOM = new Random();
     private static Quoruns quorum;
 
+    public static Integer roundAtual = 1;
+
     private static List<Proposer> proposers = new ArrayList<>();
     private static List<Proposer> coordinators = new ArrayList<>();
     private static List<Leaner> leaners = new ArrayList<>();

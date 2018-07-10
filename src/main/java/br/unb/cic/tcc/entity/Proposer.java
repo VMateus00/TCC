@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 public class Proposer extends Agent<ProposerReplica, ProposerSender> {
-    public static Integer roundAtual = 1;
-
 
     private int currentRound = 0;
     private Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
@@ -34,8 +32,17 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     }
 
     // Phase 1A só é executada por coordinator
-    public void phase1A(int round) {
+    public void phase1A() {
         // TODO após concluir parte 1
+
+        if(currentRound < Quoruns.roundAtual){
+            currentRound = Quoruns.roundAtual;
+            getvMap().put(currentRound, new HashMap<>());
+
+            ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, currentRound, null);
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(Quoruns.idAcceptors(), quorumMessage);
+        }
     }
 
     public void phase2A(ProtocolMessage protocolMessage) {
