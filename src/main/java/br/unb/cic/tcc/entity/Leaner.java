@@ -4,8 +4,8 @@ import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
+import br.unb.cic.tcc.quorum.AgentSender;
 import br.unb.cic.tcc.quorum.LeanerReplica;
-import br.unb.cic.tcc.quorum.LeanerSender;
 import br.unb.cic.tcc.quorum.Quoruns;
 
 import java.util.ArrayList;
@@ -16,13 +16,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Leaner extends Agent<LeanerReplica, LeanerSender> {
+public class Leaner extends Agent<LeanerReplica, AgentSender> {
 
     private Map<Integer, List<ProtocolMessage>> messagesFromAcceptors = new HashMap<>();
     private Map<Integer, List<ProtocolMessage>> messagesFromProposers = new HashMap<>();
 
     public Leaner(int id, String host, int port) {
-        LeanerSender leanerSender = new LeanerSender(id);
+        AgentSender leanerSender = new AgentSender(id);
         LeanerReplica leanerReplica = new LeanerReplica(id, host, port, this);
 
         setAgentId(id);
@@ -79,7 +79,7 @@ public class Leaner extends Agent<LeanerReplica, LeanerSender> {
             q2bVals.forEach((k,v)-> learnedThisRound.putIfAbsent(k,v));
             w.forEach((k,v)-> learnedThisRound.putIfAbsent(k,v));
 
-        System.out.println("Leaner (" + getAgentId()+") - aprendeu: "+learnedThisRound);
+            System.out.println("Leaner (" + getAgentId()+") - aprendeu: "+learnedThisRound);
         }
     }
 

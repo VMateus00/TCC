@@ -4,8 +4,8 @@ import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
+import br.unb.cic.tcc.quorum.AgentSender;
 import br.unb.cic.tcc.quorum.ProposerReplica;
-import br.unb.cic.tcc.quorum.ProposerSender;
 import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
-public class Proposer extends Agent<ProposerReplica, ProposerSender> {
+public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     private int currentRound = 0;
     private Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
@@ -26,7 +26,7 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
     Map<Integer, Set<ProtocolMessage>> msgsRecebidas = new ConcurrentHashMap<>(); // round /msgs from acceptors (só o coordinator usa)
 
     public Proposer(int id, String host, int port) {
-        ProposerSender proposerSender = new ProposerSender(id);
+        AgentSender proposerSender = new AgentSender(id);
         ProposerReplica proposerReplica = new ProposerReplica(id, host, port, this);
 
         setAgentId(id);
@@ -69,8 +69,10 @@ public class Proposer extends Agent<ProposerReplica, ProposerSender> {
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             if (valMsgRecebida != null) {
+                System.out.println("Proposer enviou msg to acceptors and cfProposers");
                 getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(currentRound), quorumMessage);
             } else {
+                System.out.println("Proposer enviou msg to leaners");
                 getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
             }
         }

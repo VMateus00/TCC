@@ -5,7 +5,7 @@ import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AcceptorReplica;
-import br.unb.cic.tcc.quorum.AcceptorSender;
+import br.unb.cic.tcc.quorum.AgentSender;
 import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
@@ -15,12 +15,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Acceptor extends Agent<AcceptorReplica, AcceptorSender> {
+public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
     private int currentRound = 0;
     private int roundAceitouUltimaVez = 0; // começa nunca tendo aceitado nada, por isso 0
 
     public Acceptor(int id, String host, int port) {
-        AcceptorSender acceptorSender = new AcceptorSender(id);
+        AgentSender acceptorSender = new AgentSender(id);
         AcceptorReplica acceptorReplica = new AcceptorReplica(id, host, port, this);
 
         setAgentId(id);

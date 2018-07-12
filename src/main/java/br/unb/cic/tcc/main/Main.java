@@ -6,7 +6,9 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         Initializer.initializeQuoruns();
 
-//        new Client().run();
+        Thread.sleep(5*1000);
+        System.out.println("Propor msg ---------------------------------------------------------------------------");
+        new Client().run();
     }
 }
 
