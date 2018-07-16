@@ -2,6 +2,7 @@ package br.unb.cic.tcc.entity;
 
 import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.messages.ClientMessage;
+import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AcceptorReplica;
@@ -37,7 +38,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
             msg.put(Constants.V_VAL, getVmapLastRound());
             msg.put(Constants.V_RND, roundAceitouUltimaVez);
 
-            ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, msg);
+            ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, getAgentId(), msg);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idCoordinators(currentRound), quorumMessage);
         }
@@ -51,13 +52,12 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
 
         boolean condicao1 = vMapLastRound.isEmpty(); //vval[a] == none
         boolean condicao2 = false;
-        Map<Constants, Object> message = (Map<Constants, Object>) protocolMessage.getMessage();
-        ClientMessage clientMessage = (ClientMessage) message.get(Constants.V_VAL);
+        ProposerClientMessage clientMessage = (ProposerClientMessage) protocolMessage.getMessage();
 
         if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S) {
-            condicao1 = (clientMessage != null && roundAceitouUltimaVez < round) || condicao1;
+            condicao1 = (clientMessage.getClientMessage() != null && roundAceitouUltimaVez < round) || condicao1;
         } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A) {
-            condicao2 = clientMessage != null;
+            condicao2 = clientMessage.getClientMessage() != null;
         }
 
         if (currentRound <= round && (condicao1 || condicao2)) {
@@ -65,22 +65,18 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
             currentRound = round;
             vMapLastRound = getVmapLastRound();
 
-            Integer agentId = (Integer) message.get(Constants.AGENT_ID);
+            Integer agentId = protocolMessage.getAgentSend();
             if (condicao1) {
                 HashSet<ClientMessage> clientMessages = new HashSet<>();
-                clientMessages.add((ClientMessage) message.get(Constants.V_VAL));
-                vMapLastRound.put((Integer) message.get(Constants.AGENT_ID), clientMessages);
+                clientMessages.add(clientMessage.getClientMessage());
+                vMapLastRound.put(agentId, clientMessages);
                 // TODO atualizar o valor no mapa
             } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
                 vMapLastRound = getVmapLastRound();
 
                 // TODO verificar se é para zerar o valor do vMapLastRound
-                Set<ClientMessage> proposedValuesByProposerReceived = vMapLastRound.get(agentId);
-                if(proposedValuesByProposerReceived == null){
-                    vMapLastRound.put(agentId, new HashSet<>());
-                    proposedValuesByProposerReceived = vMapLastRound.get(agentId);
-                }
-                proposedValuesByProposerReceived.add(clientMessage);
+                vMapLastRound.putIfAbsent(agentId, new HashSet<>());
+                vMapLastRound.get(agentId).add(clientMessage.getClientMessage());
 
                 for (Integer proposerId : Quoruns.idNCFProposers(currentRound)) {
                     Set<ClientMessage> proposedValues = vMapLastRound.get(proposerId);
@@ -91,31 +87,18 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
                     proposedValues .add(null);
                 }
             } else {
-
-                Set<ClientMessage> clientMessages = vMapLastRound.get(agentId);
-                if (clientMessages == null) {
-                    clientMessages = new HashSet<>();
-                    vMapLastRound.put(agentId, clientMessages);
-                }
-                vMapLastRound.get(agentId).add(clientMessage);
+                vMapLastRound.putIfAbsent(agentId, new HashSet<>());
+                vMapLastRound.get(agentId).add(clientMessage.getClientMessage());
             }
 
-            Map<Constants, Object> msgToLeaner = new HashMap<>();
-            msgToLeaner.put(Constants.V_VAL, vMapLastRound);
-            msgToLeaner.put(Constants.AGENT_ID, this.getAgentId());
-
-            ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, msgToLeaner);
+            ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), vMapLastRound);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
         }
     }
 
     private Map<Integer, Set<ClientMessage>> getVmapLastRound() {
-        Map<Integer, Set<ClientMessage>> vMapLastRound = getvMap().get(roundAceitouUltimaVez);
-        if (vMapLastRound == null) {
-            vMapLastRound = new HashMap<>();
-            getvMap().put(roundAceitouUltimaVez, vMapLastRound); // garantir que esse map está sendo referenciado
-        }
-        return vMapLastRound;
+        getvMap().putIfAbsent(roundAceitouUltimaVez, new HashMap<>());
+        return getvMap().get(roundAceitouUltimaVez);
     }
 }

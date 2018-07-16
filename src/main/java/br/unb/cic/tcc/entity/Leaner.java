@@ -13,13 +13,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 public class Leaner extends Agent<LeanerReplica, AgentSender> {
 
-    private Map<Integer, List<ProtocolMessage>> messagesFromAcceptors = new HashMap<>();
-    private Map<Integer, List<ProtocolMessage>> messagesFromProposers = new HashMap<>();
+    private Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
+    private Map<Integer, Set<ProtocolMessage>> messagesFromProposers = new ConcurrentHashMap<>();
 
     public Leaner(int id, String host, int port) {
         AgentSender leanerSender = new AgentSender(id);
@@ -30,62 +33,60 @@ public class Leaner extends Agent<LeanerReplica, AgentSender> {
         setQuorumReplica(leanerReplica);
     }
 
-    public void learn(ProtocolMessage protocolMessage) {
+    public synchronized void learn(ProtocolMessage protocolMessage) {
 
-        List<ProtocolMessage> protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
-        List<ProtocolMessage> protocolMessagesFromProposers = messagesFromProposers.get(protocolMessage.getRound()); // só quem envia sao os CF
+        Set<ProtocolMessage> protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
+        Set<ProtocolMessage> protocolMessagesFromProposers = messagesFromProposers.get(protocolMessage.getRound()); // só quem envia sao os CF
+
+        if (protocolMessagesFromAcceptors == null) {
+            messagesFromAcceptors.put(protocolMessage.getRound(), new ConcurrentSkipListSet<>());
+            protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
+        }
+        if (protocolMessagesFromProposers == null) {
+            messagesFromProposers.put(protocolMessage.getRound(), new ConcurrentSkipListSet<>());
+            protocolMessagesFromProposers = messagesFromProposers.get(protocolMessage.getRound());
+        }
 
         if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A) {
-            if (protocolMessagesFromProposers == null){
-                messagesFromProposers.put(protocolMessage.getRound(), new ArrayList<>());
-                protocolMessagesFromProposers = messagesFromProposers.get(protocolMessage.getRound());
-            }
             protocolMessagesFromProposers.add(protocolMessage);
-            System.out.println("Proposer chamou a fase leaner");
-
         } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2B) {
-            if (protocolMessagesFromAcceptors == null) {
-                messagesFromAcceptors.put(protocolMessage.getRound(), new ArrayList<>());
-                protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
-            }
             protocolMessagesFromAcceptors.add(protocolMessage);
         }
 
         if (protocolMessagesFromAcceptors.size() == Quoruns.getAcceptors().size()) {
             // ACTIONS:
 
-            if(protocolMessagesFromProposers == null){
-                protocolMessagesFromProposers = Collections.emptyList();
-            }
-
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()
                     .filter(p -> ((Map<Constants, Object>) p.getMessage()).get(Constants.V_VAL) == null)
                     .collect(Collectors.toList());
 
             Map<Integer, Set<ClientMessage>> q2bVals = new HashMap<>();
-            protocolMessagesFromAcceptors.forEach(protocolMsgAcceptor->{
-                Map<Constants, Object> message = (Map<Constants, Object>) protocolMsgAcceptor.getMessage();
-                ((Map<Integer, Set<ClientMessage>>)message.get(Constants.V_VAL)).forEach((k,v)-> q2bVals.putIfAbsent(k, v));
+            protocolMessagesFromAcceptors.forEach(protocolMsgAcceptor -> {
+                Map<Integer, Set<ClientMessage>> message = (Map<Integer, Set<ClientMessage>>) protocolMsgAcceptor.getMessage();
+                message.forEach(q2bVals::putIfAbsent);
             });
 
             Map<Integer, Set<ClientMessage>> w = new HashMap<>();
-            msgWithNilValue.forEach(p-> {
+            msgWithNilValue.forEach(p -> {
                 Map<Constants, Object> message = (Map<Constants, Object>) p.getMessage();
                 w.put((Integer) message.get(Constants.AGENT_ID), null);
             });
 
             Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedThisRound(protocolMessage.getRound());
 
-            q2bVals.forEach((k,v)-> learnedThisRound.putIfAbsent(k,v));
-            w.forEach((k,v)-> learnedThisRound.putIfAbsent(k,v));
+            q2bVals.forEach((k, v) -> learnedThisRound.putIfAbsent(k, v));
+            w.forEach((k, v) -> learnedThisRound.putIfAbsent(k, v));
 
-            System.out.println("Leaner (" + getAgentId()+") - aprendeu: "+learnedThisRound);
+            System.out.println("Leaner (" + getAgentId() + ") - aprendeu: " + learnedThisRound);
+            if(getAgentId() == 5){
+                System.out.println();
+            }
         }
     }
 
-    private Map<Integer, Set<ClientMessage>> getLearnedThisRound(Integer currentRound){
+    private Map<Integer, Set<ClientMessage>> getLearnedThisRound(Integer currentRound) {
         Map<Integer, Set<ClientMessage>> integerSetMap = getvMap().get(currentRound);
-        if(integerSetMap == null){
+        if (integerSetMap == null) {
             integerSetMap = new HashMap<>();
             getvMap().put(currentRound, integerSetMap);
         }

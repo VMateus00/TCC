@@ -5,12 +5,14 @@ import java.util.Objects;
 
 public class ProtocolMessage implements Serializable, Comparable {
     private ProtocolMessageType protocolMessageType;
+    private Integer agentSend;
     private Integer round;
     private Object message;
 
-    public ProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Object message) {
+    public ProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, Object message) {
         this.protocolMessageType = protocolMessageType;
         this.round = round;
+        this.agentSend = agentSend;
         this.message = message;
     }
 
@@ -46,6 +48,14 @@ public class ProtocolMessage implements Serializable, Comparable {
         return protocolMessageType == that.protocolMessageType &&
                 Objects.equals(round, that.round) &&
                 Objects.equals(message, that.message);
+    }
+
+    public Integer getAgentSend() {
+        return agentSend;
+    }
+
+    public void setAgentSend(Integer agentSend) {
+        this.agentSend = agentSend;
     }
 
     @Override
