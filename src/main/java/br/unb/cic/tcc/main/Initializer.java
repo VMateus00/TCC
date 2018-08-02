@@ -1,7 +1,7 @@
 package br.unb.cic.tcc.main;
 
 import br.unb.cic.tcc.entity.Acceptor;
-import br.unb.cic.tcc.entity.Leaner;
+import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.quorum.Quoruns;
 
@@ -80,7 +80,7 @@ public class Initializer {
     }
 
     private static void createLeaner(int id, String host, int port){
-        Quoruns.getLeaners().add(leanerToAdd(id, host, port));
+        Quoruns.getLearners().add(learnerToAdd(id, host, port));
     }
 
     private static void createAcceptor(int id, String host, int port){
@@ -95,8 +95,8 @@ public class Initializer {
         return new Acceptor(id, host, port);
     }
 
-    protected static Leaner leanerToAdd(int id, String host, int port){
-        return new Leaner(id, host, port);
+    protected static Learner learnerToAdd(int id, String host, int port){
+        return new Learner(id, host, port);
     }
 
 }

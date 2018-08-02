@@ -2,7 +2,7 @@ package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.entity.Agent;
-import br.unb.cic.tcc.entity.Leaner;
+import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.messages.ClientMessage;
 import org.apache.commons.lang3.ArrayUtils;
@@ -20,7 +20,7 @@ public class Quoruns {
 
     private static List<Proposer> proposers = new ArrayList<>();
     private static List<Proposer> coordinators = new ArrayList<>();
-    private static List<Leaner> leaners = new ArrayList<>();
+    private static List<Learner> learners = new ArrayList<>();
     private static List<Acceptor> acceptors = new ArrayList<>();
 
     private Quoruns() {
@@ -43,8 +43,8 @@ public class Quoruns {
         return proposers;
     }
 
-    public static List<Leaner> getLeaners() {
-        return leaners;
+    public static List<Learner> getLearners() {
+        return learners;
     }
 
     public static List<Acceptor> getAcceptors() {
@@ -63,8 +63,8 @@ public class Quoruns {
         return proposers.stream().filter(Proposer::isColisionFastProposer).collect(Collectors.toList());
     }
 
-    public static int[] idLeaners(){
-         return leaners.stream().mapToInt(Leaner::getAgentId).toArray();
+    public static int[] idLearners(){
+         return learners.stream().mapToInt(Learner::getAgentId).toArray();
     }
 
     public static int[] idProposers(){

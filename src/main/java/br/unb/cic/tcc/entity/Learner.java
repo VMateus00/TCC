@@ -5,32 +5,29 @@ import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AgentSender;
-import br.unb.cic.tcc.quorum.LeanerReplica;
+import br.unb.cic.tcc.quorum.LearnerReplica;
 import br.unb.cic.tcc.quorum.Quoruns;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
-public class Leaner extends Agent<LeanerReplica, AgentSender> {
+public class Learner extends Agent<LearnerReplica, AgentSender> {
 
     private Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
     private Map<Integer, Set<ProtocolMessage>> messagesFromProposers = new ConcurrentHashMap<>();
 
-    public Leaner(int id, String host, int port) {
+    public Learner(int id, String host, int port) {
         AgentSender leanerSender = new AgentSender(id);
-        LeanerReplica leanerReplica = new LeanerReplica(id, host, port, this);
+        LearnerReplica learnerReplica = new LearnerReplica(id, host, port, this);
 
         setAgentId(id);
         setQuorumSender(leanerSender);
-        setQuorumReplica(leanerReplica);
+        setQuorumReplica(learnerReplica);
     }
 
     public synchronized void learn(ProtocolMessage protocolMessage) {
@@ -77,7 +74,7 @@ public class Leaner extends Agent<LeanerReplica, AgentSender> {
             q2bVals.forEach((k, v) -> learnedThisRound.putIfAbsent(k, v));
             w.forEach((k, v) -> learnedThisRound.putIfAbsent(k, v));
 
-            System.out.println("Leaner (" + getAgentId() + ") - aprendeu: " + learnedThisRound);
+            System.out.println("Learner (" + getAgentId() + ") - aprendeu: " + learnedThisRound);
             if(getAgentId() == 5){
                 System.out.println();
             }

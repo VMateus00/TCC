@@ -80,7 +80,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
                 getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(currentRound), quorumMessage);
             } else {
                 System.out.println("Proposer ("+getAgentId()+") enviou msg to leaners");
-                getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
+                getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
             }
         }
     }

@@ -93,7 +93,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
 
             ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), vMapLastRound);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idLeaners(), quorumMessage);
+            getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
         }
     }
 
