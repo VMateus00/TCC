@@ -21,7 +21,7 @@ public class Initializer {
     }
 
     private static void initializeProtocol() {
-        Proposer coordinator= Quoruns.getCoordinators().get(0);
+        Proposer coordinator = Quoruns.getCoordinators().get(0);
         coordinator.phase1A();
     }
 
@@ -76,14 +76,27 @@ public class Initializer {
     }
 
     private static void createProposer(int id, String host, int port){
-        Quoruns.getProposers().add(new Proposer(id, host, port));
+        Quoruns.getProposers().add(proposerToAdd(id, host, port));
     }
 
     private static void createLeaner(int id, String host, int port){
-        Quoruns.getLeaners().add(new Leaner(id, host, port));
+        Quoruns.getLeaners().add(leanerToAdd(id, host, port));
     }
 
     private static void createAcceptor(int id, String host, int port){
-        Quoruns.getAcceptors().add(new Acceptor(id, host, port));
+        Quoruns.getAcceptors().add(acceptorToAdd(id, host, port));
     }
+
+    protected static Proposer proposerToAdd(int id, String host, int port){
+        return new Proposer(id, host, port);
+    }
+
+    protected static Acceptor acceptorToAdd(int id, String host, int port){
+        return new Acceptor(id, host, port);
+    }
+
+    protected static Leaner leanerToAdd(int id, String host, int port){
+        return new Leaner(id, host, port);
+    }
+
 }
