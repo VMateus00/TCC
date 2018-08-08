@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 public class Initializer {
-    public static final String PROPOSERS = "#Proposers";
-    public static final String LEANERS = "#Leaners";
-    public static final String ACCEPTORS = "#Acceptors";
+    private static final String PROPOSERS = "#Proposers";
+    private static final String LEANERS = "#Leaners";
+    private static final String ACCEPTORS = "#Acceptors";
 
     public static void initializeQuoruns(){
         createQuorunsReadingFile();

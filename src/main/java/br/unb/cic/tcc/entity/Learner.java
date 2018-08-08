@@ -75,9 +75,6 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
             w.forEach((k, v) -> learnedThisRound.putIfAbsent(k, v));
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu: " + learnedThisRound);
-            if(getAgentId() == 5){
-                System.out.println();
-            }
         }
     }
 

@@ -52,11 +52,12 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
 
         boolean condicao1 = vMapLastRound.isEmpty(); //vval[a] == none
         boolean condicao2 = false;
-        ProposerClientMessage clientMessage = (ProposerClientMessage) protocolMessage.getMessage();
+        ProposerClientMessage clientMessage = null;
 
         if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S) {
-            condicao1 = (clientMessage.getClientMessage() != null && roundAceitouUltimaVez < round) || condicao1;
+            condicao1 = (protocolMessage.getMessage() != null && roundAceitouUltimaVez < round) || condicao1;
         } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A) {
+            clientMessage = (ProposerClientMessage) protocolMessage.getMessage();
             condicao2 = clientMessage.getClientMessage() != null;
         }
 
@@ -66,12 +67,14 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
             vMapLastRound = getVmapLastRound();
 
             Integer agentId = protocolMessage.getAgentSend();
-            if (condicao1) {
-                HashSet<ClientMessage> clientMessages = new HashSet<>();
-                clientMessages.add(clientMessage.getClientMessage());
-                vMapLastRound.put(agentId, clientMessages);
+            if (condicao1 && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S) {
+                ((HashMap<Integer, Set<ClientMessage>>)protocolMessage.getMessage())
+                        .forEach((k,v)->getVmapLastRound().put(k,v));
+//                HashSet<ClientMessage> clientMessages = new HashSet<>();
+//                clientMessages.add(clientMessage.getClientMessage());
+//                vMapLastRound.put(agentId, clientMessages);
                 // TODO atualizar o valor no mapa
-            } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
+            } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty()) && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A) {
                 vMapLastRound = getVmapLastRound();
 
                 // TODO verificar se é para zerar o valor do vMapLastRound
