@@ -23,7 +23,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     private int currentRound = 0;
     private Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
-    private Boolean isColisionFastProposer = true; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
+    private final Boolean isColisionFastProposer; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
     Map<Integer, Set<ProtocolMessage>> msgsRecebidas = new ConcurrentHashMap<>(); // round /msgs from acceptors (só o coordinator usa)
 
     public Proposer(int id, String host, int port) {
@@ -33,6 +33,8 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         setAgentId(id);
         setQuorumReplica(proposerReplica);
         setQuorumSender(proposerSender);
+
+        isColisionFastProposer = getAgentId() <= 3;
     }
 
     // Phase 1A só é executada por coordinator
@@ -61,25 +63,22 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
             currentValue.put(currentRound, protocolMessage.getMessage());
 
             ProposerClientMessage valResponseMsg = null;
-            if(protocolMessage.getMessage() instanceof ClientMessage){
+            if (protocolMessage.getMessage() instanceof ClientMessage) {
                 valResponseMsg = new ProposerClientMessage(getAgentId(), (ClientMessage) protocolMessage.getMessage());
-            } else{
+            } else if (protocolMessage.getMessage() instanceof ProposerClientMessage) {
+                valResponseMsg = (ProposerClientMessage) protocolMessage.getMessage();
+            } else {
                 System.out.println("Erro");
 //                throw new Exception("Nao pode entrar como ProposerClientMessage nesse ponto");
             }
-//            HashMap<Constants, Object> map = new HashMap<>();
-//            map.put(Constants.AGENT_ID, this.getAgentId());
-//            map.put(Constants.V_VAL, valMsgRecebida);
-
-//            ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), map);
             ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), getAgentId(), valResponseMsg);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             if (protocolMessage.getMessage() != null) {
-                System.out.println("Proposer ("+getAgentId()+") enviou msg to acceptors and cfProposers");
+                System.out.println("Proposer (" + getAgentId() + ") enviou msg to acceptors and cfProposers");
                 getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(currentRound), quorumMessage);
             } else {
-                System.out.println("Proposer ("+getAgentId()+") enviou msg to leaners");
+                System.out.println("Proposer (" + getAgentId() + ") enviou msg to leaners");
                 getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
             }
         }
@@ -114,11 +113,11 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
                 getvMap().put(currentRound, new ConcurrentHashMap<>()); // deixa vazio nesse caso
                 agentsToSendMsg = Quoruns.idProposers();
             } else {
-                s.forEach((map)->
-                        map.forEach((k,v)->
-                                getMapFromRound(currentRound).put(k,v)));
+                s.forEach((map) ->
+                        map.forEach((k, v) ->
+                                getMapFromRound(currentRound).put(k, v)));
 
-                Quoruns.getProposers().forEach(proposer->
+                Quoruns.getProposers().forEach(proposer ->
                         getMapFromRound(currentRound).putIfAbsent(proposer.getAgentId(), new ConcurrentSkipListSet<>()));
                 agentsToSendMsg = Quoruns.idAcceptorsAndProposers();
             }
@@ -129,12 +128,12 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
     }
 
     public void phase2Prepare(ProtocolMessage protocolMessage) {
-        System.out.println("Proposer("+getAgentId()+") começou a fase 2Prepare");
-        if(currentRound < protocolMessage.getRound()){
+        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
+        if (currentRound < protocolMessage.getRound()) {
 
             Map<Constants, Object> msgVal = (Map<Constants, Object>) protocolMessage.getMessage();
             Map<Integer, Set<ClientMessage>> msgFromCoordinator = (Map<Integer, Set<ClientMessage>>) msgVal.get(Constants.V_VAL);
-            if(msgFromCoordinator != null && msgFromCoordinator.get(getAgentId()) != null){
+            if (msgFromCoordinator != null && msgFromCoordinator.get(getAgentId()) != null) {
                 currentValue.put(currentRound, msgFromCoordinator.get(getAgentId())); // TODO testar
             } else {
                 currentValue.put(currentRound, null);

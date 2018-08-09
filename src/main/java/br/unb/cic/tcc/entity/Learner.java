@@ -71,19 +71,15 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
 
             Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedThisRound(protocolMessage.getRound());
 
-            q2bVals.forEach((k, v) -> learnedThisRound.putIfAbsent(k, v));
-            w.forEach((k, v) -> learnedThisRound.putIfAbsent(k, v));
+            q2bVals.forEach(learnedThisRound::putIfAbsent);
+            w.forEach(learnedThisRound::putIfAbsent);
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu: " + learnedThisRound);
         }
     }
 
     private Map<Integer, Set<ClientMessage>> getLearnedThisRound(Integer currentRound) {
-        Map<Integer, Set<ClientMessage>> integerSetMap = getvMap().get(currentRound);
-        if (integerSetMap == null) {
-            integerSetMap = new HashMap<>();
-            getvMap().put(currentRound, integerSetMap);
-        }
-        return integerSetMap;
+        getvMap().putIfAbsent(currentRound, new HashMap<>());
+        return getvMap().get(currentRound);
     }
 }
