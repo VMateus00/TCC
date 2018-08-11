@@ -10,44 +10,49 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
-public class Initializer {
+public abstract class Initializer{
     private static final String PROPOSERS = "#Proposers";
     private static final String LEANERS = "#Leaners";
     private static final String ACCEPTORS = "#Acceptors";
 
-    public static void initializeQuoruns(){
+    private static boolean isAlreadyExecuted = false;
+
+    public void initializeQuoruns(){
         createQuorunsReadingFile();
         initializeProtocol();
     }
 
-    private static void initializeProtocol() {
+    private void initializeProtocol() {
         Proposer coordinator = Quoruns.getCoordinators().get(0);
         coordinator.phase1A();
     }
 
-    private static void createQuorunsReadingFile() {
-        String filePath = "src/config"+System.getProperty("file.separator")+"hosts.config";
+    private void createQuorunsReadingFile() {
+        if(!isAlreadyExecuted){
+            String filePath = "src/config"+System.getProperty("file.separator")+"hosts.config";
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))){
-            String actualLine = bufferedReader.readLine();
+            try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))){
+                String actualLine = bufferedReader.readLine();
 
-            while (actualLine != null){
-                if(actualLine.contains(PROPOSERS)){
-                    actualLine = insertOnQuorum(bufferedReader, PROPOSERS);
-                } else if(actualLine.contains(LEANERS)){
-                    actualLine = insertOnQuorum(bufferedReader, LEANERS);
-                } else if(actualLine.contains(ACCEPTORS)){
-                    actualLine = insertOnQuorum(bufferedReader, ACCEPTORS);
-                } else {
-                    actualLine = bufferedReader.readLine();
+                while (actualLine != null){
+                    if(actualLine.contains(PROPOSERS)){
+                        actualLine = insertOnQuorum(bufferedReader, PROPOSERS);
+                    } else if(actualLine.contains(LEANERS)){
+                        actualLine = insertOnQuorum(bufferedReader, LEANERS);
+                    } else if(actualLine.contains(ACCEPTORS)){
+                        actualLine = insertOnQuorum(bufferedReader, ACCEPTORS);
+                    } else {
+                        actualLine = bufferedReader.readLine();
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            isAlreadyExecuted = true;
         }
     }
 
-    private static String insertOnQuorum(BufferedReader bufferedReader, String quorumName) throws IOException {
+    private String insertOnQuorum(BufferedReader bufferedReader, String quorumName) throws IOException {
         String actualLine = bufferedReader.readLine();
         while (actualLine != null && !actualLine.startsWith("#")){
             StringTokenizer str = new StringTokenizer(actualLine," ");
@@ -75,28 +80,21 @@ public class Initializer {
         return actualLine;
     }
 
-    private static void createProposer(int id, String host, int port){
+    private void createProposer(int id, String host, int port){
         Quoruns.getProposers().add(proposerToAdd(id, host, port));
     }
 
-    private static void createLeaner(int id, String host, int port){
+    private void createLeaner(int id, String host, int port){
         Quoruns.getLearners().add(learnerToAdd(id, host, port));
     }
 
-    private static void createAcceptor(int id, String host, int port){
+    private void createAcceptor(int id, String host, int port){
         Quoruns.getAcceptors().add(acceptorToAdd(id, host, port));
     }
 
-    protected static Proposer proposerToAdd(int id, String host, int port){
-        return new Proposer(id, host, port);
-    }
+    abstract Proposer proposerToAdd(int id, String host, int port);
 
-    protected static Acceptor acceptorToAdd(int id, String host, int port){
-        return new Acceptor(id, host, port);
-    }
+    abstract Acceptor acceptorToAdd(int id, String host, int port);
 
-    protected static Learner learnerToAdd(int id, String host, int port){
-        return new Learner(id, host, port);
-    }
-
+    abstract Learner learnerToAdd(int id, String host, int port);
 }
