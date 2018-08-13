@@ -2,6 +2,7 @@ package br.unb.cic.tcc.entity;
 
 import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.messages.ClientMessage;
+import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
@@ -21,10 +22,10 @@ import java.util.stream.Collectors;
 
 public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
-    private int currentRound = 0;
-    private Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
+    protected int currentRound = 0;
+    protected Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
     private final Boolean isColisionFastProposer; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
-    Map<Integer, Set<ProtocolMessage>> msgsRecebidas = new ConcurrentHashMap<>(); // round /msgs from acceptors (só o coordinator usa)
+    protected Map<Integer, Set<ProtocolMessage>> msgsRecebidas = new ConcurrentHashMap<>(); // round /msgs from acceptors (só o coordinator usa)
 
     public Proposer(int id, String host, int port) {
         AgentSender proposerSender = new AgentSender(id);
@@ -84,7 +85,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         }
     }
 
-    public void phase2Start(ProtocolMessage protocolMessage) {
+    public synchronized void phase2Start(ProtocolMessage protocolMessage) {
         System.out.println("Coordinator começou a fase 2Start");
         Set<ProtocolMessage> protocolMessages = msgsRecebidas.get(protocolMessage.getRound());
         if (protocolMessages == null) {
@@ -98,14 +99,14 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
                 && protocolMessages.size() == Quoruns.getAcceptors().size()) {
 
             int max = protocolMessages.stream()
-                    .map(p -> (Map<Constants, Object>) p.getMessage())
-                    .mapToInt(p -> (Integer) p.get(Constants.V_RND))
+                    .map(p -> (Message1B) p.getMessage())
+                    .mapToInt(Message1B::getRoundAceitouUltimaVez)
                     .max().getAsInt();
 
             List<Map<Integer, Set<ClientMessage>>> s = protocolMessages.stream()
-                    .map(p -> (Map<Constants, Object>) p.getMessage())
-                    .filter(p -> p.get(Constants.V_RND).equals(max))
-                    .map(p -> (Map<Integer, Set<ClientMessage>>) p.get(Constants.V_VAL))
+                    .map(p -> (Message1B) p.getMessage())
+                    .filter(p -> p.getRoundAceitouUltimaVez().equals(max))
+                    .map(Message1B::getvMapLastRound)
                     .collect(Collectors.toList());
 
             int[] agentsToSendMsg;
@@ -157,7 +158,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         return isColisionFastProposer;
     }
 
-    private Map<Integer, Set<ClientMessage>> getMapFromRound(Integer round) {
+    protected Map<Integer, Set<ClientMessage>> getMapFromRound(Integer round) {
         Map<Integer, Set<ClientMessage>> mapOfRound = getvMap().get(round);
         if (mapOfRound == null) {
             mapOfRound = new ConcurrentHashMap<>();

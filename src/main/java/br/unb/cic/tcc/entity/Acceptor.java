@@ -1,7 +1,7 @@
 package br.unb.cic.tcc.entity;
 
-import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.messages.ClientMessage;
+import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
@@ -33,12 +33,14 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
         if(currentRound < protocolMessage.getRound() && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
             currentRound = protocolMessage.getRound();
 
-            Map<Constants, Object> msg = new HashMap<>();
-            msg.put(Constants.AGENT_ID, getAgentId());
-            msg.put(Constants.V_VAL, getVmapLastRound());
-            msg.put(Constants.V_RND, roundAceitouUltimaVez);
+            Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
 
-            ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, getAgentId(), msg);
+//            Map<Constants, Object> msg = new HashMap<>();
+//            msg.put(Constants.AGENT_ID, getAgentId());
+//            msg.put(Constants.V_VAL, getVmapLastRound());
+//            msg.put(Constants.V_RND, roundAceitouUltimaVez);
+
+            ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, getAgentId(), message1B);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idCoordinators(currentRound), quorumMessage);
         }
