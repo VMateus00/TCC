@@ -50,7 +50,7 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
             protocolMessagesFromAcceptors.add(protocolMessage);
         }
 
-        if (protocolMessagesFromAcceptors.size() == Quoruns.getAcceptors().size()) {
+        if (protocolMessagesFromAcceptors.size() >= Quoruns.getAcceptors().size()) {
             // ACTIONS:
 
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()
@@ -60,7 +60,7 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
             Map<Integer, Set<ClientMessage>> q2bVals = new HashMap<>();
             protocolMessagesFromAcceptors.forEach(protocolMsgAcceptor -> {
                 Map<Integer, Set<ClientMessage>> message = (Map<Integer, Set<ClientMessage>>) protocolMsgAcceptor.getMessage();
-                message.forEach(q2bVals::putIfAbsent);
+                message.forEach(q2bVals::put);
             });
 
             Map<Integer, Set<ClientMessage>> w = new HashMap<>();
@@ -71,10 +71,10 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
 
             Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedThisRound(protocolMessage.getRound());
 
-            q2bVals.forEach(learnedThisRound::putIfAbsent);
-            w.forEach(learnedThisRound::putIfAbsent);
+            q2bVals.forEach(learnedThisRound::put);
+            w.forEach(learnedThisRound::put);
 
-            System.out.println("Learner (" + getAgentId() + ") - aprendeu: " + learnedThisRound);
+            System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
         }
     }
 

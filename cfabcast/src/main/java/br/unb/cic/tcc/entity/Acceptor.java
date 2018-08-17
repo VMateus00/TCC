@@ -35,11 +35,6 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
 
             Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
 
-//            Map<Constants, Object> msg = new HashMap<>();
-//            msg.put(Constants.AGENT_ID, getAgentId());
-//            msg.put(Constants.V_VAL, getVmapLastRound());
-//            msg.put(Constants.V_RND, roundAceitouUltimaVez);
-
             ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, getAgentId(), message1B);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idCoordinators(currentRound), quorumMessage);
@@ -52,16 +47,16 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
 
         int round = protocolMessage.getRound();
 
-        boolean condicao1 = vMapLastRound.isEmpty(); //vval[a] == none
-        boolean condicao2 = false;
         ProposerClientMessage clientMessage = null;
-
-        if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S) {
-            condicao1 = (protocolMessage.getMessage() != null && roundAceitouUltimaVez < round) || condicao1;
-        } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A) {
+        if(protocolMessage.getMessage() instanceof ProposerClientMessage){
             clientMessage = (ProposerClientMessage) protocolMessage.getMessage();
-            condicao2 = clientMessage.getClientMessage() != null;
         }
+
+        boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S &&
+                    ((protocolMessage.getMessage() != null && roundAceitouUltimaVez < round) || vMapLastRound.isEmpty());  //vval[a] == none
+
+        boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
+                && (clientMessage).getClientMessage() != null;
 
         if (currentRound <= round && (condicao1 || condicao2)) {
             roundAceitouUltimaVez = round;
@@ -69,19 +64,15 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
             vMapLastRound = getVmapLastRound();
 
             Integer agentId = protocolMessage.getAgentSend();
-            if (condicao1 && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S) {
+            if (condicao1) {
                 ((HashMap<Integer, Set<ClientMessage>>)protocolMessage.getMessage())
                         .forEach((k,v)->getVmapLastRound().put(k,v));
-//                HashSet<ClientMessage> clientMessages = new HashSet<>();
-//                clientMessages.add(clientMessage.getClientMessage());
-//                vMapLastRound.put(agentId, clientMessages);
                 // TODO atualizar o valor no mapa
-            } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty()) && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A) {
+            } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
                 vMapLastRound = getVmapLastRound();
 
                 // TODO verificar se é para zerar o valor do vMapLastRound
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
-                vMapLastRound.get(agentId).add(clientMessage.getClientMessage());
 
                 for (Integer proposerId : Quoruns.idNCFProposers(currentRound)) {
                     Set<ClientMessage> proposedValues = vMapLastRound.get(proposerId);
@@ -91,6 +82,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
                     }
                     proposedValues .add(null);
                 }
+                vMapLastRound.get(agentId).add(clientMessage.getClientMessage());
             } else {
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
                 vMapLastRound.get(agentId).add(clientMessage.getClientMessage());

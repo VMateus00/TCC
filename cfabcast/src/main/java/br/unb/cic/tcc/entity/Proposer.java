@@ -131,6 +131,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
     public void phase2Prepare(ProtocolMessage protocolMessage) {
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
         if (currentRound < protocolMessage.getRound()) {
+            currentRound = protocolMessage.getRound();
 
             Map<Constants, Object> msgVal = (Map<Constants, Object>) protocolMessage.getMessage();
             Map<Integer, Set<ClientMessage>> msgFromCoordinator = (Map<Integer, Set<ClientMessage>>) msgVal.get(Constants.V_VAL);
