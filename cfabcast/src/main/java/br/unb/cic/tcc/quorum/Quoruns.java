@@ -8,8 +8,12 @@ import br.unb.cic.tcc.messages.ClientMessage;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Quoruns {
@@ -18,13 +22,17 @@ public class Quoruns {
 
     private static final Random RANDOM = new Random();
 
-    public static Integer roundAtual = 1;
+    private static Integer roundAtual = 1;
+
+    private static boolean podeAtualizarRound = false;
 
     private static List<Proposer> proposers = new ArrayList<>();
     private static List<Proposer> coordinators = new ArrayList<>();
     private static List<Learner> learners = new ArrayList<>();
     private static List<Acceptor> acceptors = new ArrayList<>();
 
+
+    private static Map<Integer, Set<Integer>> listaDeRoundsConcluidos = new HashMap<>(); // <round, learners>
 
     private Quoruns() {
     }
@@ -101,5 +109,28 @@ public class Quoruns {
 
     public static int[] idAcceptorsAndProposers() {
         return ArrayUtils.addAll(idAcceptors(), idProposers());
+    }
+
+    public static Integer getRoundAtual(){
+        return roundAtual;
+    }
+
+    public static synchronized void atualizaRound(){
+        if(podeAtualizarRound){
+            Quoruns.roundAtual++;
+        }
+        podeAtualizarRound = false;
+    }
+
+    public static synchronized void liberaAtualizacaoRound(Integer learnerId, Integer round){
+        Set<Integer> roundsExecutados = listaDeRoundsConcluidos.putIfAbsent(round, new HashSet<>());
+        if(roundsExecutados == null){
+            roundsExecutados = listaDeRoundsConcluidos.put(round, new HashSet<>());
+        }
+        roundsExecutados.add(learnerId);
+
+        if(roundsExecutados.size() == Quoruns.getLearners().size()){
+            Quoruns.podeAtualizarRound = true;
+        }
     }
 }

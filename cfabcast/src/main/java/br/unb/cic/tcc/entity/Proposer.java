@@ -40,8 +40,9 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     // Phase 1A só é executada por coordinator
     public void phase1A() {
-        if (currentRound < Quoruns.roundAtual) {
-            currentRound = Quoruns.roundAtual;
+        Quoruns.atualizaRound(); // Metodo criado para testar varios rounds
+        if (currentRound < Quoruns.getRoundAtual()) {
+            currentRound = Quoruns.getRoundAtual();
             getvMap().put(currentRound, new HashMap<>());
 
             ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, currentRound, getAgentId(), null);

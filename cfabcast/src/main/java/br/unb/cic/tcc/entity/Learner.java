@@ -75,6 +75,7 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
             w.forEach(learnedThisRound::put);
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
+            Quoruns.liberaAtualizacaoRound(getAgentId(), protocolMessage.getRound());
         }
     }
 
