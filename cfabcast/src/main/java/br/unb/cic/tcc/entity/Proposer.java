@@ -35,7 +35,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         setQuorumReplica(proposerReplica);
         setQuorumSender(proposerSender);
 
-        isColisionFastProposer = getAgentId() <= 3;
+        isColisionFastProposer = getAgentId() <= 3 && getAgentId() != 1;
     }
 
     // Phase 1A só é executada por coordinator
