@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
-    private int currentRound = 0;
-    private int roundAceitouUltimaVez = 0; // começa nunca tendo aceitado nada, por isso 0
+    protected int currentRound = 0;
+    protected int roundAceitouUltimaVez = 0; // começa nunca tendo aceitado nada, por isso 0
 
     public Acceptor(int id, String host, int port) {
         AgentSender acceptorSender = new AgentSender(id);
@@ -94,7 +94,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
         }
     }
 
-    private Map<Integer, Set<ClientMessage>> getVmapLastRound() {
+    protected Map<Integer, Set<ClientMessage>> getVmapLastRound() {
         getvMap().putIfAbsent(roundAceitouUltimaVez, new HashMap<>());
         return getvMap().get(roundAceitouUltimaVez);
     }

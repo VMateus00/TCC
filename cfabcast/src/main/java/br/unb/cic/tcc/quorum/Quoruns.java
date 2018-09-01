@@ -13,8 +13,10 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Quoruns {
-    public static final Random RANDOM = new Random();
-    private static Quoruns quorum;
+    private static final Integer QTD_ERROS_BIZANTINOS_MAXIMOS_ESPERADOS = 1;
+    public static final Integer TAMANHO_MINIMO_QUORUM = 2*QTD_ERROS_BIZANTINOS_MAXIMOS_ESPERADOS+1;
+
+    private static final Random RANDOM = new Random();
 
     public static Integer roundAtual = 1;
 
@@ -23,16 +25,17 @@ public class Quoruns {
     private static List<Learner> learners = new ArrayList<>();
     private static List<Acceptor> acceptors = new ArrayList<>();
 
+
     private Quoruns() {
     }
 
     public static void receiveClientMessage(ClientMessage clientMessage) {
         if(clientMessage != null){
             // escolhe um proposer aleatoriamente do quorum:
-            int size = quorum.getProposers().size();
+            int size = Quoruns.getProposers().size();
             int positionProposerEscolhido = RANDOM.nextInt(size) - 1;
             positionProposerEscolhido = positionProposerEscolhido > 0 ? positionProposerEscolhido : 0;
-            Proposer proposer = quorum.getProposers().get(positionProposerEscolhido);
+            Proposer proposer = Quoruns.getProposers().get(positionProposerEscolhido);
 
             // inicia o protocolo
             proposer.propose(clientMessage);

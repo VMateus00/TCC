@@ -24,7 +24,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     protected int currentRound = 0;
     protected Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
-    private final Boolean isColisionFastProposer; // TODO deixar aleatorio (verificar quantos sao necessarios ter)
+    private final Boolean isColisionFastProposer;
     protected Map<Integer, Set<ProtocolMessage>> msgsRecebidas = new ConcurrentHashMap<>(); // round /msgs from acceptors (só o coordinator usa)
 
     public Proposer(int id, String host, int port) {
@@ -58,7 +58,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && Quoruns.isCFProposerOnRound(protocolMessage.getAgentSend(), currentRound);
 
         if (currentRound == protocolMessage.getRound()
-                && currentValue.get(currentRound) == null
+                && (currentValue.get(currentRound) == null)
                 && (condicao1 || condicao2)) {
 
             currentValue.put(currentRound, protocolMessage.getMessage());
@@ -111,15 +111,15 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
             int[] agentsToSendMsg;
             if (s.isEmpty()) {
-                getvMap().put(currentRound, new ConcurrentHashMap<>()); // deixa vazio nesse caso
+                getvMap().put(currentRound, null); // deixa vazio nesse caso
                 agentsToSendMsg = Quoruns.idProposers();
             } else {
                 s.forEach((map) ->
                         map.forEach((k, v) ->
-                                getMapFromRound(currentRound).put(k, v)));
+                                getMapFromRound(currentRound).put(k, v))); // TODO verificar caso onde isso entra de novo
 
                 Quoruns.getProposers().forEach(proposer ->
-                        getMapFromRound(currentRound).putIfAbsent(proposer.getAgentId(), new ConcurrentSkipListSet<>()));
+                        getMapFromRound(currentRound).putIfAbsent(proposer.getAgentId(), null));
                 agentsToSendMsg = Quoruns.idAcceptorsAndProposers();
             }
             ProtocolMessage msgToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2S, currentRound, getAgentId(), getMapFromRound(currentRound));
@@ -133,10 +133,9 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         if (currentRound < protocolMessage.getRound()) {
             currentRound = protocolMessage.getRound();
 
-            Map<Constants, Object> msgVal = (Map<Constants, Object>) protocolMessage.getMessage();
-            Map<Integer, Set<ClientMessage>> msgFromCoordinator = (Map<Integer, Set<ClientMessage>>) msgVal.get(Constants.V_VAL);
-            if (msgFromCoordinator != null && msgFromCoordinator.get(getAgentId()) != null) {
-                currentValue.put(currentRound, msgFromCoordinator.get(getAgentId())); // TODO testar
+            Map<Integer, Set<ClientMessage>> msgVal = (Map<Integer, Set<ClientMessage>>) protocolMessage.getMessage();
+            if (msgVal != null && !msgVal.isEmpty()) {
+                currentValue.put(currentRound, msgVal.get(getAgentId()));
             } else {
                 currentValue.put(currentRound, null);
             }
