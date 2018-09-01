@@ -7,6 +7,7 @@ import quorum.core.QuorumSender;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
     private Integer agentId;
@@ -42,5 +43,14 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
 
     public Map<Integer, Map<Integer, Set<ClientMessage>>> getvMap() {
         return vMap;
+    }
+
+    protected Map<Integer, Set<ClientMessage>> getMapFromRound(Integer round) {
+        Map<Integer, Set<ClientMessage>> mapOfRound = getvMap().get(round);
+        if (mapOfRound == null) {
+            mapOfRound = new ConcurrentHashMap<>();
+            getvMap().put(round, mapOfRound);
+        }
+        return mapOfRound;
     }
 }

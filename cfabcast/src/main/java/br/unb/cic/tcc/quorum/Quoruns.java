@@ -2,6 +2,7 @@ package br.unb.cic.tcc.quorum;
 
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.entity.Agent;
+import br.unb.cic.tcc.entity.Coordinator;
 import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.messages.ClientMessage;
@@ -27,7 +28,7 @@ public class Quoruns {
     private static boolean podeAtualizarRound = false;
 
     private static List<Proposer> proposers = new ArrayList<>();
-    private static List<Proposer> coordinators = new ArrayList<>();
+    private static List<Coordinator> coordinators = new ArrayList<>();
     private static List<Learner> learners = new ArrayList<>();
     private static List<Acceptor> acceptors = new ArrayList<>();
 
@@ -62,11 +63,7 @@ public class Quoruns {
         return acceptors;
     }
 
-    public static List<Proposer> getCoordinators() {
-        if(coordinators.isEmpty()){
-            coordinators = getProposers().stream()
-                    .filter(Proposer::isCoordinator).collect(Collectors.toList());
-        }
+    public static List<Coordinator> getCoordinators() {
         return coordinators;
     }
 
@@ -90,11 +87,11 @@ public class Quoruns {
          return acceptors.stream().mapToInt(Acceptor::getAgentId).toArray();
     }
 
-    public static int[] idCoordinators(int currentRound) { // TODO pegar coordinator do round
-        return coordinators.stream().mapToInt(Proposer::getAgentId).toArray();
+    public static int[] idCoordinators(int currentRound) {
+        return coordinators.stream().mapToInt(Coordinator::getAgentId).toArray();
     }
 
-    public static int[] idCFProposers(int round) { // TODO evoluir para carregar somente os CFProposers do round atual
+    public static int[] idCFProposers(int round) {
         return getCFProposersOnRound(round).stream().filter(Proposer::isColisionFastProposer).mapToInt(Proposer::getAgentId).toArray();
     }
 
