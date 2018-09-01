@@ -30,7 +30,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         setQuorumReplica(proposerReplica);
         setQuorumSender(proposerSender);
 
-        isColisionFastProposer = getAgentId() <= 3 && getAgentId() != 1;
+        isColisionFastProposer = getAgentId() <= 4;
     }
 
     public void phase2A(ProtocolMessage protocolMessage) {

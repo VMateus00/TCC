@@ -95,6 +95,6 @@ public class BAcceptor extends Acceptor {
                 .map(Message1B::getvMapLastRound)
                 .collect(Collectors.toList());
 
-        return s.size() >= Quoruns.TAMANHO_MINIMO_QUORUM;
+        return s.size() >= Quoruns.TAMANHO_MINIMO_QUORUM_ACCEPTORS_BIZANTINO;
     }
 }

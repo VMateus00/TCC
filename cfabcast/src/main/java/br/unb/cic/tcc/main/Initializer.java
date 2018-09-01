@@ -25,8 +25,16 @@ public abstract class Initializer{
     }
 
     private void initializeProtocol() {
+        verificaTamanhoQuorumAcceptors();
         Coordinator coordinator = Quoruns.getCoordinators().get(0);
         coordinator.phase1A();
+    }
+
+    protected void verificaTamanhoQuorumAcceptors() {
+        if(Quoruns.getAcceptors().size() < Quoruns.TAMANHO_MINIMO_QUORUM_ACCEPTORS_CRASH){
+            System.out.println("Não foi atingido o tamanho minimo do quorum de acceptors");
+            System.exit(1);
+        }
     }
 
     private void createQuorunsReadingFile() {

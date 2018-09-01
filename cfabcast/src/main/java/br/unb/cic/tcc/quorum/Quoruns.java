@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 
 public class Quoruns {
     private static final Integer QTD_ERROS_BIZANTINOS_MAXIMOS_ESPERADOS = 1;
-    public static final Integer TAMANHO_MINIMO_QUORUM = 2*QTD_ERROS_BIZANTINOS_MAXIMOS_ESPERADOS+1;
+    public static final Integer TAMANHO_MINIMO_QUORUM_ACCEPTORS_BIZANTINO = 5*QTD_ERROS_BIZANTINOS_MAXIMOS_ESPERADOS+1;
+    public static final Integer TAMANHO_MINIMO_QUORUM_ACCEPTORS_CRASH = 2*QTD_ERROS_BIZANTINOS_MAXIMOS_ESPERADOS+1;
 
     private static final Random RANDOM = new Random();
 
