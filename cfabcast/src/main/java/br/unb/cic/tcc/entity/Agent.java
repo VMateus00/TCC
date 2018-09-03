@@ -45,6 +45,10 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         return vMap;
     }
 
+    public void setvMap(Map<Integer, Map<Integer, Set<ClientMessage>>> vMap) {
+        this.vMap = vMap;
+    }
+
     protected Map<Integer, Set<ClientMessage>> getMapFromRound(Integer round) {
         Map<Integer, Set<ClientMessage>> mapOfRound = getvMap().get(round);
         if (mapOfRound == null) {
@@ -53,4 +57,6 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         }
         return mapOfRound;
     }
+
+    protected abstract void limpaDadosExecucao();
 }

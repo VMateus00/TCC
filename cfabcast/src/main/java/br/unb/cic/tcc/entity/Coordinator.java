@@ -32,7 +32,6 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
         setQuorumSender(proposerSender);
     }
 
-    // Phase 1A só é executada por coordinator
     public void phase1A() {
         Quoruns.atualizaRound(); // Metodo criado para testar varios rounds
         if (currentRound < Quoruns.getRoundAtual()) {
@@ -86,5 +85,12 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(agentsToSendMsg, quorumMessage);
         }
+    }
+
+    @Override
+    protected void limpaDadosExecucao() {
+        currentRound = 0;
+        msgsRecebidas = new ConcurrentHashMap<>();
+        setvMap(new HashMap<>());
     }
 }

@@ -83,4 +83,11 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         getvMap().putIfAbsent(currentRound, new HashMap<>());
         return getvMap().get(currentRound);
     }
+
+    @Override
+    protected void limpaDadosExecucao() {
+        messagesFromAcceptors = new ConcurrentHashMap<>();
+        messagesFromProposers = new ConcurrentHashMap<>();
+        setvMap(new HashMap<>());
+    }
 }

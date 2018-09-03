@@ -98,4 +98,11 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
         getvMap().putIfAbsent(roundAceitouUltimaVez, new HashMap<>());
         return getvMap().get(roundAceitouUltimaVez);
     }
+
+    @Override
+    protected void limpaDadosExecucao() {
+        currentRound = 0;
+        roundAceitouUltimaVez = 0;
+        setvMap(new HashMap<>());
+    }
 }

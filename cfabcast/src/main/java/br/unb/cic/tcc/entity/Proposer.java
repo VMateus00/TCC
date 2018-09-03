@@ -13,14 +13,12 @@ import quorum.communication.QuorumMessage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     protected int currentRound = 0;
     protected Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
     private final Boolean isColisionFastProposer;
-    protected Map<Integer, Set<ProtocolMessage>> msgsRecebidas = new ConcurrentHashMap<>(); // round /msgs from acceptors (só o coordinator usa)
 
     public Proposer(int id, String host, int port) {
         AgentSender proposerSender = new AgentSender(id);
@@ -98,4 +96,10 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         return isColisionFastProposer;
     }
 
+    @Override
+    protected void limpaDadosExecucao() {
+        currentRound = 0;
+        currentValue = new HashMap<>();
+        setvMap(new HashMap<>());
+    }
 }
