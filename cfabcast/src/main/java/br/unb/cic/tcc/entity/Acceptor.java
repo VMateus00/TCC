@@ -100,7 +100,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
     }
 
     @Override
-    protected void limpaDadosExecucao() {
+    public void limpaDadosExecucao() {
         currentRound = 0;
         roundAceitouUltimaVez = 0;
         setvMap(new HashMap<>());

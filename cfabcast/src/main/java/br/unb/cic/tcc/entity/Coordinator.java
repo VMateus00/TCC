@@ -33,7 +33,6 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
     }
 
     public void phase1A() {
-        Quoruns.atualizaRound(); // Metodo criado para testar varios rounds
         if (currentRound < Quoruns.getRoundAtual()) {
             currentRound = Quoruns.getRoundAtual();
             getvMap().put(currentRound, new HashMap<>());
@@ -88,7 +87,7 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
     }
 
     @Override
-    protected void limpaDadosExecucao() {
+    public void limpaDadosExecucao() {
         currentRound = 0;
         msgsRecebidas = new ConcurrentHashMap<>();
         setvMap(new HashMap<>());

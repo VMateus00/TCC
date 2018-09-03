@@ -105,7 +105,7 @@ public class BProposer extends Proposer {
     }
 
     @Override
-    protected void limpaDadosExecucao() {
+    public void limpaDadosExecucao() {
         super.limpaDadosExecucao();
         proofs = new HashMap<>();
     }

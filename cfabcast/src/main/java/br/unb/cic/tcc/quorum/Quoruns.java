@@ -10,7 +10,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -26,8 +25,6 @@ public class Quoruns {
 
     private static Integer roundAtual = 1;
 
-    private static boolean podeAtualizarRound = false;
-
     private static List<Proposer> proposers = new ArrayList<>();
     private static List<Coordinator> coordinators = new ArrayList<>();
     private static List<Learner> learners = new ArrayList<>();
@@ -35,6 +32,7 @@ public class Quoruns {
 
 
     private static Map<Integer, Set<Integer>> listaDeRoundsConcluidos = new HashMap<>(); // <round, learners>
+    private static Map<Integer, Map<Integer, Set<ClientMessage>>> aprendidosPeloLearner = new HashMap<>(); // learners <proposers, msgs>
 
     private Quoruns() {
     }
@@ -113,22 +111,29 @@ public class Quoruns {
         return roundAtual;
     }
 
-    public static synchronized void atualizaRound(){
-        if(podeAtualizarRound){
-            Quoruns.roundAtual++;
+    public static synchronized void liberaAtualizacaoRound(Integer learnerId, Map<Integer, Set<ClientMessage>> learnedThisRound){
+        Map<Integer, Set<ClientMessage>> clientMessages = aprendidosPeloLearner.putIfAbsent(learnerId, new HashMap<>());
+        if(clientMessages == null){
+            clientMessages = aprendidosPeloLearner.put(learnerId, learnedThisRound);
+        } else {
+            learnedThisRound.forEach(clientMessages::putIfAbsent);
         }
-        podeAtualizarRound = false;
+
+        if(aprendidosPeloLearner.size() == Quoruns.getLearners().size()){
+            // Protocolo concluido.
+//            Quoruns.roundAtual = 1;
+//            Quoruns.getLearners().forEach(Agent::limpaDadosExecucao);
+//            Quoruns.getAcceptors().forEach(Agent::limpaDadosExecucao);
+//            Quoruns.getProposers().forEach(Agent::limpaDadosExecucao);
+//            Quoruns.getCoordinators().forEach(Agent::limpaDadosExecucao);
+//
+//            processaInformacaoConcluida();
+//
+        }
     }
 
-    public static synchronized void liberaAtualizacaoRound(Integer learnerId, Integer round){
-        Set<Integer> roundsExecutados = listaDeRoundsConcluidos.putIfAbsent(round, new HashSet<>());
-        if(roundsExecutados == null){
-            roundsExecutados = listaDeRoundsConcluidos.put(round, new HashSet<>());
-        }
-        roundsExecutados.add(learnerId);
-
-        if(roundsExecutados.size() == Quoruns.getLearners().size()){
-            Quoruns.podeAtualizarRound = true;
-        }
+    private static void processaInformacaoConcluida() {
+        Quoruns.aprendidosPeloLearner = new HashMap<>();
+        System.out.println("Execucao concluida");
     }
 }

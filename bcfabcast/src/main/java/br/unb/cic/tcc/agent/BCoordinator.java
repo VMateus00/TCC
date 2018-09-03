@@ -25,7 +25,6 @@ public class BCoordinator extends Coordinator {
 
     @Override
     public void phase1A() { // Copia do metodo da superClasse, exceto pela assinatura
-        Quoruns.atualizaRound();
         if (currentRound < Quoruns.getRoundAtual()) {
             currentRound = Quoruns.getRoundAtual();
             getvMap().put(currentRound, new HashMap<>());

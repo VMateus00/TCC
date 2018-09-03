@@ -58,5 +58,5 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         return mapOfRound;
     }
 
-    protected abstract void limpaDadosExecucao();
+    public abstract void limpaDadosExecucao();
 }
