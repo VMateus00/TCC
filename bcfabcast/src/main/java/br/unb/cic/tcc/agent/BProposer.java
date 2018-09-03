@@ -103,4 +103,10 @@ public class BProposer extends Proposer {
 
         return s.size() >= Quoruns.TAMANHO_MINIMO_QUORUM_ACCEPTORS_BIZANTINO;
     }
+
+    @Override
+    protected void limpaDadosExecucao() {
+        super.limpaDadosExecucao();
+        proofs = new HashMap<>();
+    }
 }

@@ -24,8 +24,16 @@ public class BAcceptor extends Acceptor {
     }
 
     @Override
-    public void phase1b(ProtocolMessage protocolMessage) {
-        super.phase1b(protocolMessage); // Igual superclasse
+    public void phase1b(ProtocolMessage protocolMessage) {// Igual superClasse, menos assinatura da msg
+        if(currentRound < protocolMessage.getRound() && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
+            currentRound = protocolMessage.getRound();
+
+            Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
+
+            BProtocolMessage protocolMessageToSend = new BProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, getAgentId(), message1B);
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(Quoruns.idCoordinators(currentRound), quorumMessage);
+        }
     }
 
     @Override
@@ -77,7 +85,7 @@ public class BAcceptor extends Acceptor {
             roundAceitouUltimaVez = round;
             currentRound = round;
 
-            ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), vMapLastRound);
+            BProtocolMessage protocolSendMsg = new BProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), vMapLastRound);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
         }
