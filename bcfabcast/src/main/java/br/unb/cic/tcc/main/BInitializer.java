@@ -26,7 +26,7 @@ public class BInitializer extends Initializer {
     }
 
     protected void verificaTamanhoQuorumAcceptors() {
-        if(Quoruns.getAcceptors().size() < Quoruns.TAMANHO_MINIMO_QUORUM_ACCEPTORS_BIZANTINO){
+        if(Quoruns.getAcceptors().size() < Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO){
             System.out.println("Não foi atingido o tamanho minimo do quorum de acceptors");
             System.exit(1);
         }

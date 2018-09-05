@@ -48,7 +48,7 @@ public class BCoordinator extends Coordinator {
 
         if (currentRound == protocolMessage.getRound()
                 && getMapFromRound(currentRound).isEmpty()
-                && protocolMessages.size() == Quoruns.getAcceptors().size()) {
+                && protocolMessages.size() == Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO) {
 
             int kMax = protocolMessages.stream()
                     .map(p -> (Message1B) p.getMessage())
@@ -66,7 +66,7 @@ public class BCoordinator extends Coordinator {
                 getvMap().put(currentRound, new ConcurrentHashMap<>()); // deixa vazio nesse caso
                 agentsToSendMsg = Quoruns.idCFProposers(currentRound);
             } else {
-                if (s.size() < Quoruns.TAMANHO_MINIMO_QUORUM_ACCEPTORS_BIZANTINO) {
+                if (s.size() < Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO) {
                     return; // Só pode executar se tiver tamanho minimo;
                 }
                 s.forEach((map) ->

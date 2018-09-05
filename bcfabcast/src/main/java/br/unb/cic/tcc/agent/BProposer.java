@@ -101,7 +101,7 @@ public class BProposer extends Proposer {
                 .map(Message1B::getvMapLastRound)
                 .collect(Collectors.toList());
 
-        return s.size() >= Quoruns.TAMANHO_MINIMO_QUORUM_ACCEPTORS_BIZANTINO;
+        return s.size() >= Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO;
     }
 
     @Override
