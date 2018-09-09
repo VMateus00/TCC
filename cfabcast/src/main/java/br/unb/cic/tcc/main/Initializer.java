@@ -31,7 +31,7 @@ public abstract class Initializer{
     }
 
     protected void verificaTamanhoQuorumAcceptors() {
-        if(Quoruns.getAcceptors().size() < Quoruns.TAMANHO_MINIMO_QUORUM_ACCEPTORS_CRASH){
+        if(Quoruns.getAcceptors().size() < Quoruns.QTD_QUORUM_ACCEPTORS_CRASH){
             System.out.println("Não foi atingido o tamanho minimo do quorum de acceptors");
             System.exit(1);
         }
