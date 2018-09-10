@@ -98,6 +98,10 @@ public class Quoruns {
         return getCFProposersOnRound(round).stream().filter(Proposer::isColisionFastProposer).mapToInt(Proposer::getAgentId).toArray();
     }
 
+    public static int[] idAcceptorsLearnersCFProposers(int round){
+        return ArrayUtils.addAll(idAcceptorsAndCFProposers(round), idLearners());
+    }
+
     // false se nao pertence aos CFProposers ou se nao for
     public static boolean isCFProposerOnRound(int agendId, int round){
         return getCFProposersOnRound(round).stream().filter(Proposer::isColisionFastProposer).anyMatch(p->p.getAgentId().equals(agendId));
