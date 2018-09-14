@@ -9,26 +9,31 @@ import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.Quoruns;
+import br.unb.cic.tcc.util.RsaUtil;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
+import java.security.KeyPair;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class BProposer extends Proposer {
-
+public class BProposer extends Proposer implements BAgent {
+    private final KeyPair keyPair;
     private Map<Integer, Set<ProtocolMessage>> proofs = new HashMap<>();
 
     public BProposer(int id, String host, int port) {
         super(id, host, port);
+        keyPair = RsaUtil.generateKeyPair();
     }
 
     @Override
     public void propose(ClientMessage clientMessage) { // Copia do metodo da superClasse, exceto pela assinatura
-        BProtocolMessage protocolMessage = new BProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, currentRound, getAgentId(), clientMessage);
+        ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_PROPOSE;
+        BProtocolMessage protocolMessage = new BProtocolMessage(messageType,
+                currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), clientMessage);
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
         getQuorumSender().sendTo(Quoruns.idCFProposers(currentRound), quorumMessage);
 
@@ -58,7 +63,9 @@ public class BProposer extends Proposer {
                 System.out.println("Erro");
 //                throw new Exception("Nao pode entrar como ProposerClientMessage nesse ponto");
             }
-            BProtocolMessage responseMsg = new BProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), getAgentId(), getAgentId(), valResponseMsg, proofs.get(currentRound));
+            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2A;
+            BProtocolMessage responseMsg = new BProtocolMessage(messageType, protocolMessage.getRound(),
+                    getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), valResponseMsg, proofs.get(currentRound));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             if (protocolMessage.getMessage() != null) {

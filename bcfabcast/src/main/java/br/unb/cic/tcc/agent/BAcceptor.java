@@ -8,9 +8,11 @@ import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.Quoruns;
+import br.unb.cic.tcc.util.RsaUtil;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
+import java.security.KeyPair;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,9 +20,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class BAcceptor extends Acceptor {
+public class BAcceptor extends Acceptor implements BAgent {
+    private final KeyPair keyPair;
+
     public BAcceptor(int id, String host, int port) {
         super(id, host, port);
+        keyPair = RsaUtil.generateKeyPair();
     }
 
     @Override
@@ -30,7 +35,9 @@ public class BAcceptor extends Acceptor {
 
             Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
 
-            BProtocolMessage protocolMessageToSend = new BProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, getAgentId(), message1B);
+            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1B;
+            BProtocolMessage protocolMessageToSend = new BProtocolMessage(messageType,
+                    currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), message1B);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idCoordinators(currentRound), quorumMessage);
         }
@@ -85,7 +92,9 @@ public class BAcceptor extends Acceptor {
             roundAceitouUltimaVez = round;
             currentRound = round;
 
-            BProtocolMessage protocolSendMsg = new BProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), vMapLastRound);
+            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2B;
+            BProtocolMessage protocolSendMsg = new BProtocolMessage(messageType,
+                    round, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), vMapLastRound);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
         }
