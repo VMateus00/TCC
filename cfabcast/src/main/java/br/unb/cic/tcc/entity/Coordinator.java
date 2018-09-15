@@ -88,7 +88,7 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
 
     @Override
     public void limpaDadosExecucao() {
-        currentRound = 0;
+        currentRound = 1;
         msgsRecebidas = new ConcurrentHashMap<>();
         setvMap(new HashMap<>());
     }

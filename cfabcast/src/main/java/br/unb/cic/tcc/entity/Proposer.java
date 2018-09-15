@@ -98,7 +98,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     @Override
     public void limpaDadosExecucao() {
-        currentRound = 0;
+        currentRound = 1;
         currentValue = new HashMap<>();
         setvMap(new HashMap<>());
     }

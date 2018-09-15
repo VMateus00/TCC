@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.quorum;
 
+import br.unb.cic.tcc.client.Client;
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.entity.Agent;
 import br.unb.cic.tcc.entity.Coordinator;
@@ -24,7 +25,6 @@ public class Quoruns {
     public static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH = 2* QTD_FALHAS_ESPERADAS +1;
     public static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO = 4* QTD_FALHAS_ESPERADAS +1;
 
-
     private static final Random RANDOM = new Random();
 
     private static Integer roundAtual = 1;
@@ -34,14 +34,13 @@ public class Quoruns {
     private static List<Learner> learners = new ArrayList<>();
     private static List<Acceptor> acceptors = new ArrayList<>();
 
-
     private static Map<Integer, Set<Integer>> listaDeRoundsConcluidos = new HashMap<>(); // <round, learners>
     private static Map<Integer, Map<Integer, Set<ClientMessage>>> aprendidosPeloLearner = new HashMap<>(); // learners <proposers, msgs>
 
     private Quoruns() {
     }
 
-    public static void receiveClientMessage(ClientMessage clientMessage) {
+    public static void startInstancia(ClientMessage clientMessage) {
         if(clientMessage != null){
             // escolhe um proposer aleatoriamente do quorum:
             int size = Quoruns.getProposers().size();
@@ -129,19 +128,25 @@ public class Quoruns {
 
         if(aprendidosPeloLearner.size() == Quoruns.getLearners().size()){
             // Protocolo concluido.
-//            Quoruns.roundAtual = 1;
-//            Quoruns.getLearners().forEach(Agent::limpaDadosExecucao);
-//            Quoruns.getAcceptors().forEach(Agent::limpaDadosExecucao);
-//            Quoruns.getProposers().forEach(Agent::limpaDadosExecucao);
-//            Quoruns.getCoordinators().forEach(Agent::limpaDadosExecucao);
-//
-//            processaInformacaoConcluida();
-//
-        }
-    }
+            Quoruns.roundAtual = 1;
+            Quoruns.getLearners().forEach(Agent::limpaDadosExecucao);
+            Quoruns.getAcceptors().forEach(Agent::limpaDadosExecucao);
+            Quoruns.getProposers().forEach(Agent::limpaDadosExecucao);
+            Quoruns.getCoordinators().forEach(Agent::limpaDadosExecucao);
 
-    private static void processaInformacaoConcluida() {
-        Quoruns.aprendidosPeloLearner = new HashMap<>();
-        System.out.println("Execucao concluida");
+            Map<Integer, Map<Integer, Set<ClientMessage>>> saida = new HashMap<>();
+            saida.putAll(aprendidosPeloLearner);
+            aprendidosPeloLearner = new HashMap<>();
+            Client.setResultado(saida);
+//            try {
+//                Thread.sleep(1000 * 10); // Dorme para garantir que vao parar de enviar msgs
+//                Quoruns.getAcceptors().forEach(Acceptor::liberaExecucao);
+//                Quoruns.getProposers().forEach(Proposer::liberaExecucao);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+
+            Client.getSemaphore().release();
+        }
     }
 }
