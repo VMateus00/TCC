@@ -21,8 +21,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BProposer extends Proposer implements BAgent {
-    private final KeyPair keyPair;
-    private Map<Integer, Set<ProtocolMessage>> proofs = new HashMap<>();
+    protected final KeyPair keyPair;
+    protected Map<Integer, Set<ProtocolMessage>> proofs = new HashMap<>();
 
     public BProposer(int id, String host, int port) {
         super(id, host, port);
@@ -34,6 +34,7 @@ public class BProposer extends Proposer implements BAgent {
         ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_PROPOSE;
         BProtocolMessage protocolMessage = new BProtocolMessage(messageType,
                 currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), clientMessage);
+
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
         getQuorumSender().sendTo(Quoruns.idCFProposers(currentRound), quorumMessage);
 
@@ -43,7 +44,6 @@ public class BProposer extends Proposer implements BAgent {
     @Override
     public void phase2A(ProtocolMessage protocolMessage) {
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
-        // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
 
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && Quoruns.isCFProposerOnRound(protocolMessage.getAgentSend(), currentRound);
@@ -61,7 +61,6 @@ public class BProposer extends Proposer implements BAgent {
                 valResponseMsg = (ProposerClientMessage) protocolMessage.getMessage();
             } else {
                 System.out.println("Erro");
-//                throw new Exception("Nao pode entrar como ProposerClientMessage nesse ponto");
             }
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2A;
             BProtocolMessage responseMsg = new BProtocolMessage(messageType, protocolMessage.getRound(),
@@ -89,7 +88,7 @@ public class BProposer extends Proposer implements BAgent {
             Map<Constants, Object> msgVal = (Map<Constants, Object>) protocolMessage.getMessage();
             Map<Integer, Set<ClientMessage>> msgFromCoordinator = (Map<Integer, Set<ClientMessage>>) msgVal.get(Constants.V_VAL);
             if (msgFromCoordinator != null && msgFromCoordinator.get(getAgentId()) != null) {
-                currentValue.put(currentRound, msgFromCoordinator.get(getAgentId())); // TODO testar
+                currentValue.put(currentRound, msgFromCoordinator.get(getAgentId()));
             } else {
                 currentValue.put(currentRound, null);
             }
