@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BAcceptor extends Acceptor implements BAgent {
-    private final KeyPair keyPair;
+    protected final KeyPair keyPair;
 
     public BAcceptor(int id, String host, int port) {
         super(id, host, port);

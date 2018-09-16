@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 public class BCoordinator extends Coordinator implements BAgent {
-    private final KeyPair keyPair;
+    protected final KeyPair keyPair;
 
     public BCoordinator(int id, String host, int port) {
         super(id, host, port);
