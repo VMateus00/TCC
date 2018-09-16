@@ -22,8 +22,8 @@ public class UsigBLearner extends Learner {
     private IUsig usigComponent = new UsigComponent();
     private final Integer[] contadorRespostasAgentes;
 
-    public UsigBLearner(int id, String host, int port, Integer qtdAgentes) {
-        super(id, host, port);
+    public UsigBLearner(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
+        super(id, host, port, agentsMap);
         contadorRespostasAgentes = new Integer[qtdAgentes+1];
     }
 
@@ -52,7 +52,7 @@ public class UsigBLearner extends Learner {
             protocolMessagesFromAcceptors.add(protocolMessage);
         }
 
-        if (protocolMessagesFromAcceptors.size() >= Quoruns.QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
+        if (protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()
                     .filter(p -> ((Map<Constants, Object>) p.getMessage()).get(Constants.V_VAL) == null)
                     .collect(Collectors.toList());

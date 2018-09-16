@@ -8,7 +8,6 @@ import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.messages.UsigBProtocolMessage;
-import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
@@ -24,8 +23,8 @@ public class UsigBCoordinator extends BCoordinator {
     private final IUsig usigComponent = new UsigComponent();
     private final Integer[] contadorRespostasAgentes;
 
-    public UsigBCoordinator(int id, String host, int port, Integer qtdAgentes) {
-        super(id, host, port);
+    public UsigBCoordinator(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
+        super(id, host, port, agentsMap);
         contadorRespostasAgentes = new Integer[qtdAgentes+1];
     }
 
@@ -47,7 +46,7 @@ public class UsigBCoordinator extends BCoordinator {
 
         if (currentRound == protocolMessage.getRound()
                 && getMapFromRound(currentRound).isEmpty()
-                && protocolMessages.size() == Quoruns.QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
+                && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
 
             int kMax = protocolMessages.stream()
                     .map(p -> (Message1B) p.getMessage())
@@ -66,8 +65,9 @@ public class UsigBCoordinator extends BCoordinator {
                 s.forEach((map) ->
                         map.forEach((k, v) -> getMapFromRound(currentRound).put(k, v)));
 
-                Quoruns.getCFProposersOnRound(currentRound).forEach(proposer ->
-                        getMapFromRound(currentRound).putIfAbsent(proposer.getAgentId(), new ConcurrentSkipListSet<>()));
+                for(Integer idCFProposer : idCFProposers()){
+                    getMapFromRound(currentRound).putIfAbsent(idCFProposer, new ConcurrentSkipListSet<>());
+                }
             }
 
             ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2S;
@@ -75,7 +75,7 @@ public class UsigBCoordinator extends BCoordinator {
                     msgType, currentRound, getAgentId(), encrypt(msgType, keyPair.getPrivate()), keyPair.getPublic(), getMapFromRound(currentRound), protocolMessages));
 
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(currentRound), quorumMessage);
+            getQuorumSender().sendTo(idAcceptorsAndCFProposers(), quorumMessage);
         }
     }
 

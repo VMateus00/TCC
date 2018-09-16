@@ -13,12 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
     private static final Integer QTD_FALHAS_ESPERADAS = 1;
-    protected static final Integer QTD_QUORUM_ACCEPTORS_BIZANTINO = 5* QTD_FALHAS_ESPERADAS +1;
-    protected static final Integer QTD_QUORUM_ACCEPTORS_CRASH = 3* QTD_FALHAS_ESPERADAS +1;
+    public static final Integer QTD_QUORUM_ACCEPTORS_CRASH = 2* QTD_FALHAS_ESPERADAS +1;
+    public static final Integer QTD_QUORUM_ACCEPTORS_BIZANTINO = 5* QTD_FALHAS_ESPERADAS +1;
+    public static final Integer QTD_QUORUM_ACCEPTORS_USIG = 2* QTD_FALHAS_ESPERADAS +1;
 
-    protected static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH = 2* QTD_FALHAS_ESPERADAS +1;
+    protected static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH = QTD_FALHAS_ESPERADAS +1;
     protected static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO = 4* QTD_FALHAS_ESPERADAS +1;
-    protected static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG = 2* QTD_FALHAS_ESPERADAS +1;
+    protected static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG = QTD_FALHAS_ESPERADAS +1;
 
     private Integer agentId;
     private QR quorumReplica;

@@ -9,7 +9,6 @@ import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.messages.UsigBProtocolMessage;
-import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
@@ -25,8 +24,8 @@ public class UsigBAcceptor extends BAcceptor {
     private final IUsig usigComponenet = new UsigComponent(); // vetor com uma quantidade maior(vamos ignora a posicao zero)
     private final Integer[] contadorRespostasAgentes;
 
-    public UsigBAcceptor(int id, String host, int port, Integer qtdAgentes) {
-        super(id, host, port);
+    public UsigBAcceptor(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
+        super(id, host, port, agentsMap);
         contadorRespostasAgentes = new Integer[qtdAgentes+1];
     }
 
@@ -71,7 +70,7 @@ public class UsigBAcceptor extends BAcceptor {
                 vMapLastRound = getVmapLastRound();
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
 
-                for (Integer proposerId : Quoruns.idNCFProposers(currentRound)) {
+                for (Integer proposerId : idNCFProposers()) {
                     Set<ClientMessage> proposedValues = vMapLastRound.get(proposerId);
                     if(proposedValues == null){
                         vMapLastRound.put(proposerId, new HashSet<>());
@@ -92,7 +91,7 @@ public class UsigBAcceptor extends BAcceptor {
                     msgType, round, getAgentId(), encrypt(msgType, keyPair.getPrivate()), keyPair.getPublic(), vMapLastRound));
 
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
+            getQuorumSender().sendTo(idLearners(), quorumMessage);
         }
     }
 
@@ -116,6 +115,6 @@ public class UsigBAcceptor extends BAcceptor {
                 .map(Message1B::getvMapLastRound)
                 .collect(Collectors.toList());
 
-        return s.size() >= Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO;
+        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG;
     }
 }

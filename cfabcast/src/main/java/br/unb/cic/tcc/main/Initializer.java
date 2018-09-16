@@ -23,6 +23,8 @@ public abstract class Initializer{
 
     private static boolean isAlreadyExecuted = false;
 
+    protected HashMap<String, Set<Integer>> agentsMap;
+
     public void initializeQuoruns(){
         createQuorunsReadingFile();
         initializeProtocol();
@@ -44,7 +46,6 @@ public abstract class Initializer{
     private void createQuorunsReadingFile() {
         if(!isAlreadyExecuted){
             String filePath = "src/config"+System.getProperty("file.separator")+"hosts.config";
-            HashMap<String, Set<Integer>> agentsMap;
             try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))){
                 agentsMap = criaMapComEnderecos(bufferedReader);
             }catch (Exception e){

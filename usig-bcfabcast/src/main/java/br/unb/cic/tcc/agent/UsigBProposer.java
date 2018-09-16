@@ -10,7 +10,6 @@ import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.messages.UsigBProtocolMessage;
-import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
@@ -25,8 +24,8 @@ public class UsigBProposer extends BProposer {
     private final IUsig usigComponent = new UsigComponent();
     private final Integer[] contadorRespostasAgentes;
 
-    public UsigBProposer(int id, String host, int port, Integer qtdAgentes) {
-        super(id, host, port);
+    public UsigBProposer(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
+        super(id, host, port, agentsMap);
         contadorRespostasAgentes = new Integer[qtdAgentes+1];
     }
 
@@ -44,7 +43,7 @@ public class UsigBProposer extends BProposer {
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 && usigComponent.verifyUI(usigBProtocolMessage)
                 && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())
-                && Quoruns.isCFProposerOnRound(protocolMessage.getAgentSend(), currentRound);
+                && isColisionFastProposer(protocolMessage.getAgentSend());
 
         if (currentRound == protocolMessage.getRound()
                 && currentValue.get(currentRound) == null
@@ -67,7 +66,7 @@ public class UsigBProposer extends BProposer {
                     msgType, protocolMessage.getRound(), getAgentId(), encrypt(msgType, keyPair.getPrivate()), keyPair.getPublic(), valResponseMsg));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
-            getQuorumSender().sendTo(Quoruns.idAcceptorsLearnersCFProposers(currentRound), quorumMessage);
+            getQuorumSender().sendTo(idAccetprosAndLearnersAndCFProposers(), quorumMessage);
         }
     }
 
@@ -112,7 +111,7 @@ public class UsigBProposer extends BProposer {
                 .map(Message1B::getvMapLastRound)
                 .collect(Collectors.toList());
 
-        return s.size() >= Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO;
+        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG;
     }
 
     @Override
