@@ -1,6 +1,8 @@
 package br.unb.cic.tcc.agent;
 
+import br.unb.cic.tcc.component.IUsig;
 import br.unb.cic.tcc.component.UsigComponent;
+import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProtocolMessage;
@@ -18,13 +20,18 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 public class UsigBCoordinator extends BCoordinator {
-    public UsigBCoordinator(int id, String host, int port) {
+
+    private final IUsig usigComponent = new UsigComponent();
+    private final Integer[] contadorRespostasAgentes;
+
+    public UsigBCoordinator(int id, String host, int port, Integer qtdAgentes) {
         super(id, host, port);
+        contadorRespostasAgentes = new Integer[qtdAgentes+1];
     }
 
     @Override
     public void phase1A() {
-        super.phase1A(); // Copia do metodo da superClasse, exceto pela assinatura
+        super.phase1A(); // Copia do metodo da superClasse
     }
 
     @Override
@@ -40,7 +47,7 @@ public class UsigBCoordinator extends BCoordinator {
 
         if (currentRound == protocolMessage.getRound()
                 && getMapFromRound(currentRound).isEmpty()
-                && protocolMessages.size() == Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO) {
+                && protocolMessages.size() == Quoruns.QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
 
             int kMax = protocolMessages.stream()
                     .map(p -> (Message1B) p.getMessage())
@@ -62,10 +69,21 @@ public class UsigBCoordinator extends BCoordinator {
                 Quoruns.getCFProposersOnRound(currentRound).forEach(proposer ->
                         getMapFromRound(currentRound).putIfAbsent(proposer.getAgentId(), new ConcurrentSkipListSet<>()));
             }
-            UsigBProtocolMessage msgToSend = UsigComponent.singleton().createUI(ProtocolMessageType.MESSAGE_2S, currentRound, getAgentId(), getAgentId(), getMapFromRound(currentRound), protocolMessages);
+
+            ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2S;
+            UsigBProtocolMessage msgToSend = usigComponent.createUI(new BProtocolMessage(
+                    msgType, currentRound, getAgentId(), encrypt(msgType, keyPair.getPrivate()), keyPair.getPublic(), getMapFromRound(currentRound), protocolMessages));
 
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(currentRound), quorumMessage);
         }
+    }
+
+    private boolean verifyCnt(Integer valorRecebido, Integer agentId){
+        if(valorRecebido.equals(contadorRespostasAgentes[agentId])){
+            contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]++;
+            return true;
+        }
+        return false;
     }
 }

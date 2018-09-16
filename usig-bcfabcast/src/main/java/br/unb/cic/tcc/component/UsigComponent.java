@@ -1,12 +1,10 @@
 package br.unb.cic.tcc.component;
 
-import br.unb.cic.tcc.messages.ProtocolMessage;
-import br.unb.cic.tcc.messages.ProtocolMessageType;
+import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.UsigBProtocolMessage;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class UsigComponent implements IUsig {
 
@@ -14,29 +12,22 @@ public class UsigComponent implements IUsig {
 
     private Map<Integer, UsigBProtocolMessage> msgs = new HashMap<>();
 
-    private static UsigComponent thisComponent = new UsigComponent();
+    @Override
+    public UsigBProtocolMessage createUI(BProtocolMessage bProtocolMessage) {
+        UsigBProtocolMessage usigBProtocolMessage = new UsigBProtocolMessage(bProtocolMessage.getProtocolMessageType(),
+                bProtocolMessage.getRound(), bProtocolMessage.getAgentSend(),
+                bProtocolMessage.getAssinatura(), bProtocolMessage.getPublicKey(),
+                bProtocolMessage.getMessage(), bProtocolMessage.getProofs(), addNovoContador());
 
-    public static UsigComponent singleton(){
-        return thisComponent;
-    }
-
-    private UsigComponent() {
+        msgs.put(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage);
+        return usigBProtocolMessage;
     }
 
     @Override
-    public UsigBProtocolMessage createUI(ProtocolMessageType protocolMessageType, Integer round, Integer assinatura, Object message) {
-        return new UsigBProtocolMessage(protocolMessageType, round, assinatura, message, addNovoContador());
-    }
-
-    @Override
-    public UsigBProtocolMessage createUI(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, Integer assinatura, Object message, Set<ProtocolMessage> proofs) {
-        return new UsigBProtocolMessage(protocolMessageType, round, agentSend, assinatura, message, proofs, addNovoContador());
-    }
-
-    @Override
-    public boolean verifyUI(UsigBProtocolMessage protocolMessage) {
-        UsigBProtocolMessage usigBProtocolMessage = msgs.get(protocolMessage.getAssinaturaUsig());
-        return usigBProtocolMessage != null && usigBProtocolMessage.equals(protocolMessage);
+    public boolean verifyUI(UsigBProtocolMessage protocolMessage) { // TODO alinhar
+//        UsigBProtocolMessage usigBProtocolMessage = msgs.get(protocolMessage.getAssinaturaUsig());
+//        return usigBProtocolMessage != null && usigBProtocolMessage.equals(protocolMessage);
+        return true;
     }
 
     private int addNovoContador(){

@@ -1,7 +1,9 @@
 package br.unb.cic.tcc.agent;
 
+import br.unb.cic.tcc.component.IUsig;
 import br.unb.cic.tcc.component.UsigComponent;
 import br.unb.cic.tcc.definitions.Constants;
+import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
@@ -20,10 +22,12 @@ import java.util.stream.Collectors;
 
 public class UsigBProposer extends BProposer {
 
-    private Map<Integer, Set<ProtocolMessage>> proofs = new HashMap<>();
+    private final IUsig usigComponent = new UsigComponent();
+    private final Integer[] contadorRespostasAgentes;
 
-    public UsigBProposer(int id, String host, int port) {
+    public UsigBProposer(int id, String host, int port, Integer qtdAgentes) {
         super(id, host, port);
+        contadorRespostasAgentes = new Integer[qtdAgentes+1];
     }
 
     @Override
@@ -38,7 +42,7 @@ public class UsigBProposer extends BProposer {
 
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
-                && UsigComponent.singleton().verifyUI(usigBProtocolMessage)
+                && usigComponent.verifyUI(usigBProtocolMessage)
                 && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())
                 && Quoruns.isCFProposerOnRound(protocolMessage.getAgentSend(), currentRound);
 
@@ -58,7 +62,9 @@ public class UsigBProposer extends BProposer {
 //                throw new Exception("Nao pode entrar como ProposerClientMessage nesse ponto");
             }
 
-            UsigBProtocolMessage responseMsg = UsigComponent.singleton().createUI(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), getAgentId(), getAgentId(), valResponseMsg, proofs.get(currentRound));
+            ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2A;
+            UsigBProtocolMessage responseMsg = usigComponent.createUI(new BProtocolMessage(
+                    msgType, protocolMessage.getRound(), getAgentId(), encrypt(msgType, keyPair.getPrivate()), keyPair.getPublic(), valResponseMsg));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             getQuorumSender().sendTo(Quoruns.idAcceptorsLearnersCFProposers(currentRound), quorumMessage);
@@ -71,12 +77,10 @@ public class UsigBProposer extends BProposer {
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
         if (currentRound < protocolMessage.getRound()
                 && goodRoundValue(usigBProtocolMessage.getProofs(), protocolMessage.getRound())
-                && UsigComponent.singleton().verifyUI(usigBProtocolMessage)
+                && usigComponent.verifyUI(usigBProtocolMessage)
                 && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())) {
 
             currentRound = protocolMessage.getRound();
-
-            proofs.put(currentRound, ((UsigBProtocolMessage) protocolMessage).getProofs());
 
             Map<Constants, Object> msgVal = (Map<Constants, Object>) protocolMessage.getMessage();
             Map<Integer, Set<ClientMessage>> msgFromCoordinator = (Map<Integer, Set<ClientMessage>>) msgVal.get(Constants.V_VAL);
@@ -88,11 +92,15 @@ public class UsigBProposer extends BProposer {
         }
     }
 
-    private boolean verifyCnt(Integer valorRecebido, Integer agentId){ // é assim?
-        return true; // TODO
+    private boolean verifyCnt(Integer valorRecebido, Integer agentId){
+        if(valorRecebido.equals(contadorRespostasAgentes[agentId])){
+            contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]++;
+            return true;
+        }
+        return false;
     }
 
-    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages, Integer round) {
+    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages, Integer round) { // TODO REFAZER
         int kMax = protocolMessages.stream()
                 .map(p -> (Message1B) p.getMessage())
                 .mapToInt(Message1B::getRoundAceitouUltimaVez)
