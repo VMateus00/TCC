@@ -10,6 +10,9 @@ import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.quorum.Quoruns;
 
+import java.util.Map;
+import java.util.Set;
+
 public class BInitializer extends Initializer {
 
     private static BInitializer singletonInstance = null;
@@ -33,23 +36,23 @@ public class BInitializer extends Initializer {
     }
 
     @Override
-    Coordinator coordinatorToAdd(int id, String host, int port) {
-        return new BCoordinator(id, host, port);
+    Coordinator coordinatorToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
+        return new BCoordinator(id, host, port, agentsMap);
     }
 
     @Override
-    protected Proposer proposerToAdd(int id, String host, int port){
-        return new BProposer(id, host, port);
+    protected Proposer proposerToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
+        return new BProposer(id, host, port, agentsMap);
     }
 
     @Override
-    protected Acceptor acceptorToAdd(int id, String host, int port){
-        return new BAcceptor(id, host, port);
+    protected Acceptor acceptorToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
+        return new BAcceptor(id, host, port, agentsMap);
     }
 
     @Override
-    Learner learnerToAdd(int id, String host, int port) {
-        return new BLearner(id, host, port);
+    Learner learnerToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
+        return new BLearner(id, host, port, agentsMap);
     }
 
 }

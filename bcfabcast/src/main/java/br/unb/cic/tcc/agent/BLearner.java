@@ -15,8 +15,8 @@ public class BLearner extends Learner {
 
     private Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
 
-    public BLearner(int id, String host, int port) {
-        super(id, host, port);
+    public BLearner(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
+        super(id, host, port, agentsMap);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class BLearner extends Learner {
 
         protocolMessagesFromAcceptors.add(protocolMessage);
 
-        if (protocolMessagesFromAcceptors.size() >= Quoruns.getAcceptors().size()) {
+        if (protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
             // ACTIONS:
 
             Map<Integer, Set<ClientMessage>> q2bVals = new HashMap<>();

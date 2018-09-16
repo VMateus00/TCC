@@ -7,7 +7,6 @@ import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
-import br.unb.cic.tcc.quorum.Quoruns;
 import br.unb.cic.tcc.util.RsaUtil;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
@@ -23,8 +22,10 @@ import java.util.stream.Collectors;
 public class BAcceptor extends Acceptor implements BAgent {
     protected final KeyPair keyPair;
 
-    public BAcceptor(int id, String host, int port) {
-        super(id, host, port);
+
+
+    public BAcceptor(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
+        super(id, host, port, agentsMap);
         keyPair = RsaUtil.generateKeyPair();
     }
 
@@ -39,7 +40,7 @@ public class BAcceptor extends Acceptor implements BAgent {
             BProtocolMessage protocolMessageToSend = new BProtocolMessage(messageType,
                     currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), message1B);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idCoordinators(currentRound), quorumMessage);
+            getQuorumSender().sendTo(idCoordinator(), quorumMessage);
         }
     }
 
@@ -76,7 +77,7 @@ public class BAcceptor extends Acceptor implements BAgent {
                 // TODO verificar se é para zerar o valor do vMapLastRound
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
 
-                for (Integer proposerId : Quoruns.idNCFProposers(currentRound)) {
+                for (Integer proposerId : idNCFProposers()) {
                     Set<ClientMessage> proposedValues = vMapLastRound.get(proposerId);
                     if(proposedValues == null){
                         vMapLastRound.put(proposerId, new HashSet<>());
@@ -96,7 +97,7 @@ public class BAcceptor extends Acceptor implements BAgent {
             BProtocolMessage protocolSendMsg = new BProtocolMessage(messageType,
                     round, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), vMapLastRound);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
+            getQuorumSender().sendTo(idLearners(), quorumMessage);
         }
     }
 
@@ -112,6 +113,6 @@ public class BAcceptor extends Acceptor implements BAgent {
                 .map(Message1B::getvMapLastRound)
                 .collect(Collectors.toList());
 
-        return s.size() >= Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO;
+        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO;
     }
 }

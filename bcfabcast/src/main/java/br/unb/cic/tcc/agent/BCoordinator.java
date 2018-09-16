@@ -6,7 +6,6 @@ import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
-import br.unb.cic.tcc.quorum.Quoruns;
 import br.unb.cic.tcc.util.RsaUtil;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
@@ -23,21 +22,21 @@ import java.util.stream.Collectors;
 public class BCoordinator extends Coordinator implements BAgent {
     protected final KeyPair keyPair;
 
-    public BCoordinator(int id, String host, int port) {
-        super(id, host, port);
+    public BCoordinator(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
+        super(id, host, port, agentsMap);
         keyPair = RsaUtil.generateKeyPair();
     }
 
     @Override
     public void phase1A() { // Copia do metodo da superClasse, exceto pela assinatura
-        if (currentRound < Quoruns.getRoundAtual()) {
-            currentRound = Quoruns.getRoundAtual();
+        if (currentRound < getRoundAtual()) {
+            currentRound = getRoundAtual();
             getvMap().put(currentRound, new HashMap<>());
 
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1A;
             BProtocolMessage protocolMessage = new BProtocolMessage(messageType, currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), null);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idAcceptors(), quorumMessage);
+            getQuorumSender().sendTo(idAcceptors(), quorumMessage);
         }
     }
 
@@ -54,7 +53,7 @@ public class BCoordinator extends Coordinator implements BAgent {
 
         if (currentRound == protocolMessage.getRound()
                 && getMapFromRound(currentRound).isEmpty()
-                && protocolMessages.size() == Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO) {
+                && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
 
             int kMax = protocolMessages.stream()
                     .map(p -> (Message1B) p.getMessage())
@@ -70,17 +69,18 @@ public class BCoordinator extends Coordinator implements BAgent {
             int[] agentsToSendMsg;
             if (s.isEmpty()) {
                 getvMap().put(currentRound, new ConcurrentHashMap<>()); // deixa vazio nesse caso
-                agentsToSendMsg = Quoruns.idCFProposers(currentRound);
+                agentsToSendMsg = idCFProposers();
             } else {
-                if (s.size() < Quoruns.QTD_QUORUM_ACCEPTORS_BIZANTINO) {
+                if (s.size() < QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
                     return; // Só pode executar se tiver tamanho minimo;
                 }
                 s.forEach((map) ->
                         map.forEach((k, v) -> getMapFromRound(currentRound).put(k, v)));
 
-                Quoruns.getCFProposersOnRound(currentRound).forEach(proposer ->
-                        getMapFromRound(currentRound).putIfAbsent(proposer.getAgentId(), new ConcurrentSkipListSet<>()));
-                agentsToSendMsg = Quoruns.idAcceptorsAndCFProposers(currentRound);
+                for (Integer idCFProposer : idCFProposers()) {
+                    getMapFromRound(currentRound).putIfAbsent(idCFProposer, new ConcurrentSkipListSet<>());
+                }
+                agentsToSendMsg = idAcceptorsAndCFProposers();
             }
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2S;
             BProtocolMessage msgToSend = new BProtocolMessage(messageType, currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), getMapFromRound(currentRound), protocolMessages);
