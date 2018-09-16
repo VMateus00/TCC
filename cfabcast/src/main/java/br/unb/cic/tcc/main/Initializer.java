@@ -9,13 +9,17 @@ import br.unb.cic.tcc.quorum.Quoruns;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 public abstract class Initializer{
-    private static final String COORDINATOR = "#Coordinator";
-    private static final String PROPOSERS = "#Proposers";
-    private static final String LEANERS = "#Leaners";
-    private static final String ACCEPTORS = "#Acceptors";
+    public static final String COORDINATOR = "#Coordinator";
+    public static final String PROPOSERS = "#Proposers";
+    public static final String LEANERS = "#Leaners";
+    public static final String ACCEPTORS = "#Acceptors";
 
     private static boolean isAlreadyExecuted = false;
 
@@ -40,19 +44,25 @@ public abstract class Initializer{
     private void createQuorunsReadingFile() {
         if(!isAlreadyExecuted){
             String filePath = "src/config"+System.getProperty("file.separator")+"hosts.config";
+            HashMap<String, Set<Integer>> agentsMap;
+            try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))){
+                agentsMap = criaMapComEnderecos(bufferedReader);
+            }catch (Exception e){
+                throw new RuntimeException("Erro ao criar map com os agentes", e);
+            }
 
             try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))){
                 String actualLine = bufferedReader.readLine();
 
                 while (actualLine != null){
                     if(actualLine.contains(COORDINATOR)){
-                        actualLine = insertOnQuorum(bufferedReader, COORDINATOR);
+                        actualLine = insertOnQuorum(bufferedReader, COORDINATOR, agentsMap);
                     }else if(actualLine.contains(PROPOSERS)){
-                        actualLine = insertOnQuorum(bufferedReader, PROPOSERS);
+                        actualLine = insertOnQuorum(bufferedReader, PROPOSERS, agentsMap);
                     } else if(actualLine.contains(LEANERS)){
-                        actualLine = insertOnQuorum(bufferedReader, LEANERS);
+                        actualLine = insertOnQuorum(bufferedReader, LEANERS, agentsMap);
                     } else if(actualLine.contains(ACCEPTORS)){
-                        actualLine = insertOnQuorum(bufferedReader, ACCEPTORS);
+                        actualLine = insertOnQuorum(bufferedReader, ACCEPTORS, agentsMap);
                     } else {
                         actualLine = bufferedReader.readLine();
                     }
@@ -64,7 +74,39 @@ public abstract class Initializer{
         }
     }
 
-    private String insertOnQuorum(BufferedReader bufferedReader, String quorumName) throws IOException {
+    private HashMap<String, Set<Integer>> criaMapComEnderecos(BufferedReader bufferedReader) throws IOException {
+        String actualLine = bufferedReader.readLine();
+        HashMap<String, Set<Integer>> agentsMap = new HashMap<>();
+
+        while (actualLine != null){
+            if(actualLine.contains(COORDINATOR)){
+                actualLine = addAgentId(bufferedReader, agentsMap, COORDINATOR);
+            }else if(actualLine.contains(PROPOSERS)){
+                actualLine = addAgentId(bufferedReader, agentsMap, PROPOSERS);
+            }else if(actualLine.contains(ACCEPTORS)){
+                actualLine = addAgentId(bufferedReader, agentsMap, ACCEPTORS);
+            }else if (actualLine.contains(LEANERS)){
+                actualLine = addAgentId(bufferedReader, agentsMap, LEANERS);
+            }else {
+                actualLine = bufferedReader.readLine();
+            }
+        }
+        return agentsMap;
+    }
+
+    private String addAgentId(BufferedReader bufferedReader, HashMap<String, Set<Integer>> agentsMap, String agentType) throws IOException {
+        String actualLine = bufferedReader.readLine();
+        while (actualLine != null && !actualLine.startsWith("#")){
+            agentsMap.putIfAbsent(agentType, new HashSet<>());
+            Set<Integer> integers = agentsMap.get(agentType);
+            StringTokenizer stringTokenizer = new StringTokenizer(actualLine, " ");
+            integers.add(Integer.valueOf(stringTokenizer.nextToken()));
+            actualLine = bufferedReader.readLine();
+        }
+        return actualLine;
+    }
+
+    private String insertOnQuorum(BufferedReader bufferedReader, String quorumName, Map<String, Set<Integer>> agentsMap) throws IOException {
         String actualLine = bufferedReader.readLine();
         while (actualLine != null && !actualLine.startsWith("#")){
             StringTokenizer str = new StringTokenizer(actualLine," ");
@@ -75,16 +117,16 @@ public abstract class Initializer{
 
                 switch (quorumName){
                     case COORDINATOR:
-                        createCoordinator(id, host, port);
+                        createCoordinator(id, host, port, agentsMap);
                         break;
                     case PROPOSERS:
-                        createProposer(id, host, port);
+                        createProposer(id, host, port, agentsMap);
                         break;
                     case LEANERS:
-                        createLeaner(id, host, port);
+                        createLeaner(id, host, port, agentsMap);
                         break;
                     case ACCEPTORS:
-                        createAcceptor(id, host, port);
+                        createAcceptor(id, host, port, agentsMap);
                         break;
                     default:
                         break;
@@ -95,27 +137,27 @@ public abstract class Initializer{
         return actualLine;
     }
 
-    private void createCoordinator(int id, String host, int port){
-        Quoruns.getCoordinators().add(coordinatorToAdd(id, host, port));
+    private void createCoordinator(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
+        Quoruns.getCoordinators().add(coordinatorToAdd(id, host, port, agentsMap));
     }
 
-    private void createProposer(int id, String host, int port){
-        Quoruns.getProposers().add(proposerToAdd(id, host, port));
+    private void createProposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
+        Quoruns.getProposers().add(proposerToAdd(id, host, port, agentsMap));
     }
 
-    private void createLeaner(int id, String host, int port){
-        Quoruns.getLearners().add(learnerToAdd(id, host, port));
+    private void createLeaner(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
+        Quoruns.getLearners().add(learnerToAdd(id, host, port, agentsMap));
     }
 
-    private void createAcceptor(int id, String host, int port){
-        Quoruns.getAcceptors().add(acceptorToAdd(id, host, port));
+    private void createAcceptor(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
+        Quoruns.getAcceptors().add(acceptorToAdd(id, host, port, agentsMap));
     }
 
-    abstract Coordinator coordinatorToAdd(int id, String host, int port);
+    abstract Coordinator coordinatorToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap);
 
-    abstract Proposer proposerToAdd(int id, String host, int port);
+    abstract Proposer proposerToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap);
 
-    abstract Acceptor acceptorToAdd(int id, String host, int port);
+    abstract Acceptor acceptorToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap);
 
-    abstract Learner learnerToAdd(int id, String host, int port);
+    abstract Learner learnerToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap);
 }

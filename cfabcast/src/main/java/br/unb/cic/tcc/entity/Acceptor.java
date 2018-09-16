@@ -7,7 +7,6 @@ import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AcceptorReplica;
 import br.unb.cic.tcc.quorum.AgentSender;
-import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
@@ -20,11 +19,12 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
     protected int currentRound = 0;
     protected int roundAceitouUltimaVez = 0; // começa nunca tendo aceitado nada, por isso 0
 
-    public Acceptor(int id, String host, int port) {
+    public Acceptor(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender acceptorSender = new AgentSender(id);
         AcceptorReplica acceptorReplica = new AcceptorReplica(id, host, port, this);
 
         setAgentId(id);
+        idAgentes = agentsMap;
         setQuorumSender(acceptorSender);
         setQuorumReplica(acceptorReplica);
     }
@@ -37,7 +37,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
 
             ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, getAgentId(), message1B);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idCoordinators(currentRound), quorumMessage);
+            getQuorumSender().sendTo(idCoordinator(), quorumMessage);
         }
     }
 
@@ -74,7 +74,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
                 // TODO verificar se é para zerar o valor do vMapLastRound
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
 
-                for (Integer proposerId : Quoruns.idNCFProposers(currentRound)) {
+                for (Integer proposerId : idNCFProposers()) {
                     Set<ClientMessage> proposedValues = vMapLastRound.get(proposerId);
                     if(proposedValues == null){
                         vMapLastRound.put(proposerId, new HashSet<>());
@@ -90,7 +90,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
 
             ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), vMapLastRound);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
+            getQuorumSender().sendTo(idLearners(), quorumMessage);
         }
     }
 

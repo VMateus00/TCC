@@ -6,7 +6,6 @@ import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AgentSender;
 import br.unb.cic.tcc.quorum.ProposerReplica;
-import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
@@ -20,15 +19,16 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
     protected Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
     private final Boolean isColisionFastProposer;
 
-    public Proposer(int id, String host, int port) {
+    public Proposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender proposerSender = new AgentSender(id);
         ProposerReplica proposerReplica = new ProposerReplica(id, host, port, this);
 
         setAgentId(id);
+        idAgentes = agentsMap;
         setQuorumReplica(proposerReplica);
         setQuorumSender(proposerSender);
 
-        isColisionFastProposer = getAgentId() <= 4;
+        isColisionFastProposer = isColisionFastProposer();
     }
 
     public void phase2A(ProtocolMessage protocolMessage) {
@@ -36,7 +36,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
 
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
-        boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && Quoruns.isCFProposerOnRound(protocolMessage.getAgentSend(), currentRound);
+        boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && isColisionFastProposer(protocolMessage.getAgentSend());
 
         if (currentRound == protocolMessage.getRound()
                 && (currentValue.get(currentRound) == null)
@@ -58,10 +58,10 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
             if (protocolMessage.getMessage() != null) {
                 System.out.println("Proposer (" + getAgentId() + ") enviou msg to acceptors and cfProposers");
-                getQuorumSender().sendTo(Quoruns.idAcceptorsAndCFProposers(currentRound), quorumMessage);
+                getQuorumSender().sendTo(idAcceptorsAndCFProposers(), quorumMessage);
             } else {
                 System.out.println("Proposer (" + getAgentId() + ") enviou msg to leaners");
-                getQuorumSender().sendTo(Quoruns.idLearners(), quorumMessage);
+                getQuorumSender().sendTo(idLearners(), quorumMessage);
             }
         }
     }
@@ -83,7 +83,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
     public void propose(ClientMessage clientMessage) {
         ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, currentRound, getAgentId(), clientMessage);
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
-        getQuorumSender().sendTo(Quoruns.idCFProposers(currentRound), quorumMessage);
+        getQuorumSender().sendTo(idCFProposers(), quorumMessage);
 
         System.out.println("Proposer (" + getAgentId() + ") enviou uma proposta para os CFProposers");
     }

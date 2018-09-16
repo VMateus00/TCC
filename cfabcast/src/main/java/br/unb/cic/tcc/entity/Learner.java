@@ -18,20 +18,20 @@ import java.util.stream.Collectors;
 
 public class Learner extends Agent<LearnerReplica, AgentSender> {
 
-    private Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
-    private Map<Integer, Set<ProtocolMessage>> messagesFromProposers = new ConcurrentHashMap<>();
+    protected Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
+    protected Map<Integer, Set<ProtocolMessage>> messagesFromProposers = new ConcurrentHashMap<>();
 
-    public Learner(int id, String host, int port) {
+    public Learner(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender leanerSender = new AgentSender(id);
         LearnerReplica learnerReplica = new LearnerReplica(id, host, port, this);
 
         setAgentId(id);
+        idAgentes = agentsMap;
         setQuorumSender(leanerSender);
         setQuorumReplica(learnerReplica);
     }
 
     public synchronized void learn(ProtocolMessage protocolMessage) {
-
         Set<ProtocolMessage> protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
         Set<ProtocolMessage> protocolMessagesFromProposers = messagesFromProposers.get(protocolMessage.getRound()); // só quem envia sao os CF
 
@@ -79,7 +79,7 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         }
     }
 
-    private Map<Integer, Set<ClientMessage>> getLearnedThisRound(Integer currentRound) {
+    protected Map<Integer, Set<ClientMessage>> getLearnedThisRound(Integer currentRound) {
         getvMap().putIfAbsent(currentRound, new HashMap<>());
         return getvMap().get(currentRound);
     }

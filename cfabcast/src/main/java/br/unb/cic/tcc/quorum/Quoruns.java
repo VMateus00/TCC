@@ -24,6 +24,7 @@ public class Quoruns {
 
     public static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH = 2* QTD_FALHAS_ESPERADAS +1;
     public static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO = 4* QTD_FALHAS_ESPERADAS +1;
+    public static final Integer QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG = 2* QTD_FALHAS_ESPERADAS +1;
 
     private static final Random RANDOM = new Random();
 

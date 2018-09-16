@@ -6,7 +6,6 @@ import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AgentSender;
 import br.unb.cic.tcc.quorum.CoordinatorReplica;
-import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
@@ -23,23 +22,24 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
     protected int currentRound = 0;
     protected Map<Integer, Set<ProtocolMessage>> msgsRecebidas = new ConcurrentHashMap<>(); // round /msgs from acceptors (só o coordinator usa)
 
-    public Coordinator(int id, String host, int port) {
+    public Coordinator(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender proposerSender = new AgentSender(id);
         CoordinatorReplica proposerReplica = new CoordinatorReplica(id, host, port, this);
 
         setAgentId(id);
+        idAgentes = agentsMap;
         setQuorumReplica(proposerReplica);
         setQuorumSender(proposerSender);
     }
 
     public void phase1A() {
-        if (currentRound < Quoruns.getRoundAtual()) {
-            currentRound = Quoruns.getRoundAtual();
+        if (currentRound < getRoundAtual()) {
+            currentRound = getRoundAtual();
             getvMap().put(currentRound, new HashMap<>());
 
             ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, currentRound, getAgentId(), null);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(Quoruns.idAcceptors(), quorumMessage);
+            getQuorumSender().sendTo(idAcceptors(), quorumMessage);
         }
     }
 
@@ -54,7 +54,7 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
 
         if (currentRound == protocolMessage.getRound()
                 && getMapFromRound(currentRound).isEmpty()
-                && protocolMessages.size() == Quoruns.getAcceptors().size()) {
+                && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH) {
 
             int max = protocolMessages.stream()
                     .map(p -> (Message1B) p.getMessage())
@@ -70,15 +70,16 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
             int[] agentsToSendMsg;
             if (s.isEmpty()) {
                 getvMap().put(currentRound, null); // deixa vazio nesse caso
-                agentsToSendMsg = Quoruns.idProposers();
+                agentsToSendMsg = idProposers();
             } else {
                 s.forEach((map) ->
                         map.forEach((k, v) ->
                                 getMapFromRound(currentRound).put(k, v))); // TODO verificar caso onde isso entra de novo
 
-                Quoruns.getProposers().forEach(proposer ->
-                        getMapFromRound(currentRound).putIfAbsent(proposer.getAgentId(), null));
-                agentsToSendMsg = Quoruns.idAcceptorsAndProposers();
+                for (int idProposer: idProposers()){
+                    getMapFromRound(currentRound).putIfAbsent(idProposer, null);
+                }
+                agentsToSendMsg = idAcceptorsAndProposers();
             }
             ProtocolMessage msgToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2S, currentRound, getAgentId(), getMapFromRound(currentRound));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
