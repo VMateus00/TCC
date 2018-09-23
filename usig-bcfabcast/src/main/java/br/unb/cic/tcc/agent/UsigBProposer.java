@@ -26,12 +26,23 @@ public class UsigBProposer extends BProposer {
 
     public UsigBProposer(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
-        contadorRespostasAgentes = new Integer[qtdAgentes+1];
+        contadorRespostasAgentes = new Integer[qtdAgentes];
+
+        for (int i=0; i<contadorRespostasAgentes.length;i++){
+            contadorRespostasAgentes[i] = 1;
+        }
     }
 
     @Override
-    public void propose(ClientMessage clientMessage) {
-        super.propose(clientMessage); // Copia do metodo da superClasse
+    public void propose(ClientMessage clientMessage) { // igual super classe, menos assinatura
+        ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_PROPOSE;
+        UsigBProtocolMessage protocolMessage = usigComponent.createUI(new BProtocolMessage(messageType,
+                currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), clientMessage));
+
+        QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
+        getQuorumSender().sendTo(idCFProposers(), quorumMessage);
+
+        System.out.println("Proposer (" + getAgentId() + ") enviou uma proposta para os CFProposers");
     }
 
     @Override
@@ -42,7 +53,7 @@ public class UsigBProposer extends BProposer {
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 && usigComponent.verifyUI(usigBProtocolMessage)
-                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())
+                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)
                 && isColisionFastProposer(protocolMessage.getAgentSend());
 
         if (currentRound == protocolMessage.getRound()
@@ -77,7 +88,7 @@ public class UsigBProposer extends BProposer {
         if (currentRound < protocolMessage.getRound()
                 && goodRoundValue(usigBProtocolMessage.getProofs(), protocolMessage.getRound())
                 && usigComponent.verifyUI(usigBProtocolMessage)
-                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())) {
+                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)) {
 
             currentRound = protocolMessage.getRound();
 

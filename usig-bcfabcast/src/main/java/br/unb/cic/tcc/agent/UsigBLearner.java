@@ -24,7 +24,11 @@ public class UsigBLearner extends Learner {
 
     public UsigBLearner(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
-        contadorRespostasAgentes = new Integer[qtdAgentes+1];
+        contadorRespostasAgentes = new Integer[qtdAgentes];
+
+        for (int i=0; i<contadorRespostasAgentes.length;i++){
+            contadorRespostasAgentes[i] = 1;
+        }
     }
 
     @Override
@@ -44,11 +48,11 @@ public class UsigBLearner extends Learner {
 
         if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 && usigComponent.verifyUI(usigBProtocolMessage)
-                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())) {
+                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)) {
             protocolMessagesFromProposers.add(protocolMessage);
         } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2B
                 && usigComponent.verifyUI(usigBProtocolMessage)
-                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())) {
+                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)) {
             protocolMessagesFromAcceptors.add(protocolMessage);
         }
 

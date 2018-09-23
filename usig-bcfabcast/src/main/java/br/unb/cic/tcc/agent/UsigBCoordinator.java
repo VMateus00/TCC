@@ -25,7 +25,10 @@ public class UsigBCoordinator extends BCoordinator {
 
     public UsigBCoordinator(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
-        contadorRespostasAgentes = new Integer[qtdAgentes+1];
+        contadorRespostasAgentes = new Integer[qtdAgentes];
+        for (int i=0; i<contadorRespostasAgentes.length;i++){
+            contadorRespostasAgentes[i] = 1;
+        }
     }
 
     @Override

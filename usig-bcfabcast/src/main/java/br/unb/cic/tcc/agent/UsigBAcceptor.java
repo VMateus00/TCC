@@ -26,7 +26,11 @@ public class UsigBAcceptor extends BAcceptor {
 
     public UsigBAcceptor(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
-        contadorRespostasAgentes = new Integer[qtdAgentes+1];
+        contadorRespostasAgentes = new Integer[qtdAgentes];
+
+        for (int i=0; i<contadorRespostasAgentes.length;i++){
+            contadorRespostasAgentes[i] = 1;
+        }
     }
 
     @Override
@@ -51,11 +55,11 @@ public class UsigBAcceptor extends BAcceptor {
                 (vMapLastRound.isEmpty() ||
                 (goodRoundValue(usigBProtocolMessage.getProofs(), usigBProtocolMessage.getRound())
                         && usigComponenet.verifyUI(usigBProtocolMessage)
-                        && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())
+                        && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)
                         && (usigBProtocolMessage.getMessage() != null && roundAceitouUltimaVez < round)));
 
         boolean condicao2 = usigBProtocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
-                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend())
+                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)
                 && usigComponenet.verifyUI(usigBProtocolMessage)
                 && (clientMessage).getClientMessage() != null;
 
