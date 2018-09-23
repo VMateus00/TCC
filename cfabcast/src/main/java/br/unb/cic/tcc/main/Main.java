@@ -28,9 +28,8 @@ public class Main {
 
         Map<String, Set<Integer>> agentsMap;
 
-        String filePath = "src/config"+System.getProperty("file.separator")+"hosts.config";
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))){
-            agentsMap = criaMapComEnderecos(bufferedReader);
+        try {
+            agentsMap = AgentMapUtil.createAgentsMap();
         }catch (Exception e){
             throw new RuntimeException("Erro ao criar map com os agentes", e);
         }
@@ -54,7 +53,6 @@ public class Main {
             case LEANERS:
                 new Learner(id, host, port, agentsMap);
                 break;
-
         }
 //        CInitializer.getSingletonInstance().initializeQuoruns();
 //
@@ -63,37 +61,6 @@ public class Main {
 //        new Client().run();
     }
 
-    private static Map<String, Set<Integer>> criaMapComEnderecos(BufferedReader bufferedReader) throws IOException {
-        String actualLine = bufferedReader.readLine();
-        HashMap<String, Set<Integer>> agentsMap = new HashMap<>();
-
-        while (actualLine != null){
-            if(actualLine.contains(COORDINATOR)){
-                actualLine = addAgentId(bufferedReader, agentsMap, COORDINATOR);
-            }else if(actualLine.contains(PROPOSERS)){
-                actualLine = addAgentId(bufferedReader, agentsMap, PROPOSERS);
-            }else if(actualLine.contains(ACCEPTORS)){
-                actualLine = addAgentId(bufferedReader, agentsMap, ACCEPTORS);
-            }else if (actualLine.contains(LEANERS)){
-                actualLine = addAgentId(bufferedReader, agentsMap, LEANERS);
-            }else {
-                actualLine = bufferedReader.readLine();
-            }
-        }
-        return agentsMap;
-    }
-
-    private static String addAgentId(BufferedReader bufferedReader, HashMap<String, Set<Integer>> agentsMap, String agentType) throws IOException {
-        String actualLine = bufferedReader.readLine();
-        while (actualLine != null && !actualLine.startsWith("#")){
-            agentsMap.putIfAbsent(agentType, new HashSet<>());
-            Set<Integer> integers = agentsMap.get(agentType);
-            StringTokenizer stringTokenizer = new StringTokenizer(actualLine, " ");
-            integers.add(Integer.valueOf(stringTokenizer.nextToken()));
-            actualLine = bufferedReader.readLine();
-        }
-        return actualLine;
-    }
 }
 
 
