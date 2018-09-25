@@ -15,7 +15,7 @@ import java.util.Set;
 
 public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
-    protected int currentRound = 0;
+    protected int currentRound = 1;
     protected Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
     private final Boolean isColisionFastProposer;
 

@@ -98,6 +98,10 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         return idAgentes.get(Initializer.COORDINATOR).stream().mapToInt(p->p).toArray();
     }
 
+    public int[] idCoordinatorAndLearners(){
+        return ArrayUtils.addAll(idCoordinator(), idLearners());
+    }
+
     protected boolean isColisionFastProposer(Integer idProposer){
         return idProposer < 4; // REGRA ARBITRARIA, pode ser alterada dps
     }

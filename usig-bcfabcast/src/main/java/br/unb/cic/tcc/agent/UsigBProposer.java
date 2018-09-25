@@ -33,27 +33,15 @@ public class UsigBProposer extends BProposer {
         }
     }
 
-    @Override
-    public void propose(ClientMessage clientMessage) { // igual super classe, menos assinatura
-        ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_PROPOSE;
-        UsigBProtocolMessage protocolMessage = usigComponent.createUI(new BProtocolMessage(messageType,
-                currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), clientMessage));
-
-        QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
-        getQuorumSender().sendTo(idCFProposers(), quorumMessage);
-
-        System.out.println("Proposer (" + getAgentId() + ") enviou uma proposta para os CFProposers");
-    }
 
     @Override
     public void phase2A(ProtocolMessage protocolMessage) {
-        UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage) protocolMessage;
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
 
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
-                && usigComponent.verifyUI(usigBProtocolMessage)
-                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)
+                && usigComponent.verifyUI((UsigBProtocolMessage) protocolMessage)
+                && verifyCnt(((UsigBProtocolMessage) protocolMessage).getAssinaturaUsig(), ((UsigBProtocolMessage) protocolMessage).getAgentSend()-1)
                 && isColisionFastProposer(protocolMessage.getAgentSend());
 
         if (currentRound == protocolMessage.getRound()
@@ -104,7 +92,7 @@ public class UsigBProposer extends BProposer {
 
     private boolean verifyCnt(Integer valorRecebido, Integer agentId){
         if(valorRecebido.equals(contadorRespostasAgentes[agentId])){
-            contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]++;
+            contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]+1;
             return true;
         }
         return false;

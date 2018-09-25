@@ -11,6 +11,7 @@ import br.unb.cic.tcc.messages.UsigBProtocolMessage;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,8 +33,16 @@ public class UsigBCoordinator extends BCoordinator {
     }
 
     @Override
-    public void phase1A() {
-        super.phase1A(); // Copia do metodo da superClasse
+    public void phase1A() { // copia da superclasse
+        if (currentRound < getRoundAtual()) {
+            currentRound = getRoundAtual();
+            getvMap().put(currentRound, new HashMap<>());
+
+            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1A;
+            UsigBProtocolMessage protocolMessage = usigComponent.createUI(new BProtocolMessage(messageType, currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), null));
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(idAcceptors(), quorumMessage);
+        }
     }
 
     @Override

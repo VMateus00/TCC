@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class UsigComponent implements IUsig {
 
-    private static int contadorUsig = 0;
+    private int contadorUsig = 0;
 
     private Map<Integer, UsigBProtocolMessage> msgs = new HashMap<>();
 

@@ -35,7 +35,20 @@ public class UsigBAcceptor extends BAcceptor {
 
     @Override
     public void phase1b(ProtocolMessage protocolMessage) {
-        super.phase1b(protocolMessage);// Igual superClasse
+        UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage)protocolMessage;
+        if(currentRound < protocolMessage.getRound()
+                && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A
+                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)){
+            currentRound = protocolMessage.getRound();
+
+            Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
+
+            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1B;
+            UsigBProtocolMessage protocolMessageToSend = usigComponenet.createUI(new BProtocolMessage(messageType,
+                    currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), message1B));
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(idCoordinatorAndLearners(), quorumMessage);
+        }
     }
 
     @Override
@@ -100,8 +113,9 @@ public class UsigBAcceptor extends BAcceptor {
     }
 
     private boolean verifyCnt(Integer valorRecebido, Integer agentId){
+//        return true;
         if(valorRecebido.equals(contadorRespostasAgentes[agentId])){
-            contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]++;
+            contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]+1;
             return true;
         }
         return false;
