@@ -23,12 +23,16 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
 
     public Learner(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender leanerSender = new AgentSender(id);
-        LearnerReplica learnerReplica = new LearnerReplica(id, host, port, this);
+        LearnerReplica learnerReplica = defineLearnerReplica(id, host, port);
 
         setAgentId(id);
         idAgentes = agentsMap;
         setQuorumSender(leanerSender);
         setQuorumReplica(learnerReplica);
+    }
+
+    protected LearnerReplica defineLearnerReplica(int id, String host, int port) {
+        return new LearnerReplica(id, host, port, this);
     }
 
     public synchronized void learn(ProtocolMessage protocolMessage) {

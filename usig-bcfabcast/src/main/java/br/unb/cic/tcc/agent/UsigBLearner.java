@@ -5,10 +5,13 @@ import br.unb.cic.tcc.component.UsigComponent;
 import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.messages.ClientMessage;
+import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.messages.UsigBProtocolMessage;
+import br.unb.cic.tcc.quorum.LearnerReplica;
 import br.unb.cic.tcc.quorum.Quoruns;
+import br.unb.cic.tcc.quorum.UsigLearnerReplica;
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,9 +59,9 @@ public class UsigBLearner extends Learner {
             protocolMessagesFromAcceptors.add(protocolMessage);
         }
 
-        if (protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
+        if (protocolMessagesFromAcceptors.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()
-                    .filter(p -> ((Map<Constants, Object>) p.getMessage()).get(Constants.V_VAL) == null)
+                    .filter(p -> ((ProposerClientMessage) p.getMessage()).getClientMessage() == null)
                     .collect(Collectors.toList());
 
             Map<Integer, Set<ClientMessage>> q2bVals = new HashMap<>();
@@ -83,9 +86,18 @@ public class UsigBLearner extends Learner {
         }
     }
 
+    public void updateCnt(UsigBProtocolMessage protocolMessage){
+        verifyCnt(protocolMessage.getAssinaturaUsig(), protocolMessage.getAgentSend()-1);
+    }
+
+    @Override
+    protected LearnerReplica defineLearnerReplica(int id, String host, int port) {
+        return new UsigLearnerReplica(id, host, port, this);
+    }
+
     private boolean verifyCnt(Integer valorRecebido, Integer agentId){
         if(valorRecebido.equals(contadorRespostasAgentes[agentId])){
-            contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]++;
+            contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]+1;
             return true;
         }
         return false;

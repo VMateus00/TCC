@@ -8,7 +8,7 @@ import quorum.core.QuorumReplica;
 
 public class LearnerReplica extends QuorumReplica {
 
-    private Learner learner;
+    protected Learner learner;
 
     public LearnerReplica(int id, String host, int port, Learner learner) {
         super(id, "", host, port);
