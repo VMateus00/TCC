@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 public class BAcceptor extends Acceptor implements BAgent {
     protected final KeyPair keyPair;
 
-
-
     public BAcceptor(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
         keyPair = RsaUtil.generateKeyPair();
@@ -31,14 +29,16 @@ public class BAcceptor extends Acceptor implements BAgent {
 
     @Override
     public void phase1b(ProtocolMessage protocolMessage) {// Igual superClasse, menos assinatura da msg
-        if(currentRound < protocolMessage.getRound() && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
+        if(verifyMsg((BProtocolMessage) protocolMessage)
+                && currentRound < protocolMessage.getRound()
+                && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
             currentRound = protocolMessage.getRound();
 
             Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
 
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1B;
-            BProtocolMessage protocolMessageToSend = new BProtocolMessage(messageType,
-                    currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), message1B);
+            BProtocolMessage protocolMessageToSend = createAssignedMessage(new ProtocolMessage(messageType,
+                    currentRound, getAgentId(), message1B), null, keyPair);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idCoordinator(), quorumMessage);
         }
@@ -65,7 +65,8 @@ public class BAcceptor extends Acceptor implements BAgent {
                 && goodRoundValueResult
                 && (clientMessage).getClientMessage() != null;
 
-        if (currentRound <= round && (condicao1 || condicao2)) {
+        if (verifyMsg((BProtocolMessage) protocolMessage)
+                && currentRound <= round && (condicao1 || condicao2)) {
             vMapLastRound = getVmapLastRound();
 
             Integer agentId = protocolMessage.getAgentSend();
@@ -94,8 +95,8 @@ public class BAcceptor extends Acceptor implements BAgent {
             currentRound = round;
 
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2B;
-            BProtocolMessage protocolSendMsg = new BProtocolMessage(messageType,
-                    round, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), vMapLastRound);
+            BProtocolMessage protocolSendMsg = createAssignedMessage(new ProtocolMessage(messageType,
+                    round, getAgentId(), vMapLastRound), null, keyPair);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idLearners(), quorumMessage);
         }

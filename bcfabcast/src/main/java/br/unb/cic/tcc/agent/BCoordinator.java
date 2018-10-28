@@ -34,7 +34,7 @@ public class BCoordinator extends Coordinator implements BAgent {
             getvMap().put(currentRound, new HashMap<>());
 
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1A;
-            BProtocolMessage protocolMessage = new BProtocolMessage(messageType, currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), null);
+            BProtocolMessage protocolMessage = createAssignedMessage(new ProtocolMessage(messageType, currentRound, getAgentId(), null), null, keyPair);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idAcceptors(), quorumMessage);
         }
@@ -83,7 +83,7 @@ public class BCoordinator extends Coordinator implements BAgent {
                 agentsToSendMsg = idAcceptorsAndCFProposers();
             }
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2S;
-            BProtocolMessage msgToSend = new BProtocolMessage(messageType, currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), getMapFromRound(currentRound), protocolMessages);
+            BProtocolMessage msgToSend = createAssignedMessage(new ProtocolMessage(messageType, currentRound, getAgentId(), getMapFromRound(currentRound)), protocolMessages, keyPair);
 
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(agentsToSendMsg, quorumMessage);

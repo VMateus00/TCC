@@ -75,4 +75,14 @@ public class ProtocolMessage implements Serializable, Comparable {
             return -1;
         }
     }
+
+    @Override
+    public String toString() {
+        return "ProtocolMessage{" +
+                "protocolMessageType=" + protocolMessageType +
+                ", agentSend=" + agentSend +
+                ", round=" + round +
+                ", message=" + message +
+                '}';
+    }
 }

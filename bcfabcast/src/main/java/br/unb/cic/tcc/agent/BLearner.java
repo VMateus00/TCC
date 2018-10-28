@@ -1,6 +1,7 @@
 package br.unb.cic.tcc.agent;
 
 import br.unb.cic.tcc.entity.Learner;
+import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.quorum.Quoruns;
@@ -11,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-public class BLearner extends Learner {
+public class BLearner extends Learner implements BAgent {
 
     private Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
 
@@ -21,6 +22,9 @@ public class BLearner extends Learner {
 
     @Override
     public synchronized void learn(ProtocolMessage protocolMessage) {
+        if(!verifyMsg((BProtocolMessage) protocolMessage)){
+            return;
+        }
         Set<ProtocolMessage> protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
 
         if (protocolMessagesFromAcceptors == null) {

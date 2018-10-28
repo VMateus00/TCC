@@ -39,4 +39,13 @@ public class Message1B implements Serializable {
     public void setvMapLastRound(Map<Integer, Set<ClientMessage>> vMapLastRound) {
         this.vMapLastRound = vMapLastRound;
     }
+
+    @Override
+    public String toString() {
+        return "Message1B{" +
+                "roundAceitouUltimaVez=" + roundAceitouUltimaVez +
+                ", idAcceptor=" + idAcceptor +
+                ", vMapLastRound=" + vMapLastRound +
+                '}';
+    }
 }

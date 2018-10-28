@@ -26,4 +26,12 @@ public class ProposerClientMessage implements Serializable {
     public void setClientMessage(ClientMessage clientMessage) {
         this.clientMessage = clientMessage;
     }
+
+    @Override
+    public String toString() {
+        return "ProposerClientMessage{" +
+                "agentId=" + agentId +
+                ", clientMessage=" + clientMessage +
+                '}';
+    }
 }

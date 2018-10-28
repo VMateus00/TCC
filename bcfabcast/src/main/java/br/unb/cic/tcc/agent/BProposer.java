@@ -26,13 +26,14 @@ public class BProposer extends Proposer implements BAgent {
     public BProposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
         keyPair = RsaUtil.generateKeyPair();
+        currentRound = 0;
     }
 
     @Override
     public void propose(ClientMessage clientMessage) { // Copia do metodo da superClasse, exceto pela assinatura
         ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_PROPOSE;
-        BProtocolMessage protocolMessage = new BProtocolMessage(messageType,
-                currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), clientMessage);
+        BProtocolMessage protocolMessage = createAssignedMessage(new ProtocolMessage(messageType,
+                currentRound, getAgentId(), clientMessage), null, keyPair) ;
 
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
         getQuorumSender().sendTo(idCFProposers(), quorumMessage);
@@ -47,7 +48,8 @@ public class BProposer extends Proposer implements BAgent {
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && isColisionFastProposer(protocolMessage.getAgentSend());
 
-        if (currentRound == protocolMessage.getRound()
+        if (verifyMsg((BProtocolMessage) protocolMessage)
+                && currentRound == protocolMessage.getRound()
                 && currentValue.get(currentRound) == null
                 && (condicao1 || condicao2)) {
 
@@ -62,8 +64,8 @@ public class BProposer extends Proposer implements BAgent {
                 System.out.println("Erro");
             }
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2A;
-            BProtocolMessage responseMsg = new BProtocolMessage(messageType, protocolMessage.getRound(),
-                    getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), valResponseMsg, proofs.get(currentRound));
+            BProtocolMessage responseMsg = createAssignedMessage(new ProtocolMessage(messageType, protocolMessage.getRound(),
+                    getAgentId(), valResponseMsg), proofs.get(currentRound), keyPair);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             if (protocolMessage.getMessage() != null) {
@@ -79,7 +81,9 @@ public class BProposer extends Proposer implements BAgent {
     @Override
     public void phase2Prepare(ProtocolMessage protocolMessage) {
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
-        if (currentRound < protocolMessage.getRound() && goodRoundValue(((BProtocolMessage) protocolMessage).getProofs(), protocolMessage.getRound())) {
+        if (verifyMsg((BProtocolMessage) protocolMessage)
+                && currentRound < protocolMessage.getRound()
+                && goodRoundValue(((BProtocolMessage) protocolMessage).getProofs(), protocolMessage.getRound())) {
             currentRound = protocolMessage.getRound();
 
             proofs.put(currentRound, ((BProtocolMessage) protocolMessage).getProofs());
