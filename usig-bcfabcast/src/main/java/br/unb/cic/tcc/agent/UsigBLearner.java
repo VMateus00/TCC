@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
-public class UsigBLearner extends Learner {
+public class UsigBLearner extends Learner implements BAgent {
 
     private IUsig usigComponent = new UsigComponent();
     private final Integer[] contadorRespostasAgentes;
@@ -37,6 +37,9 @@ public class UsigBLearner extends Learner {
     @Override
     public synchronized void learn(ProtocolMessage protocolMessage) {
         UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage) protocolMessage;
+        if(!verifyMsg(usigBProtocolMessage)){
+            return;
+        }
         Set<ProtocolMessage> protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
         Set<ProtocolMessage> protocolMessagesFromProposers = messagesFromProposers.get(protocolMessage.getRound()); // só quem envia sao os CF
 
@@ -82,7 +85,7 @@ public class UsigBLearner extends Learner {
             w.forEach(learnedThisRound::put);
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
-            Quoruns.liberaAtualizacaoRound(getAgentId(), learnedThisRound);
+//            Quoruns.liberaAtualizacaoRound(getAgentId(), learnedThisRound);
         }
     }
 

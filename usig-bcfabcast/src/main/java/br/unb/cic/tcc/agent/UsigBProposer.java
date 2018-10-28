@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class UsigBProposer extends BProposer {
+public class UsigBProposer extends BProposer implements BAgent {
 
     private final IUsig usigComponent = new UsigComponent();
     private final Integer[] contadorRespostasAgentes;
@@ -27,6 +27,7 @@ public class UsigBProposer extends BProposer {
     public UsigBProposer(int id, String host, int port, Integer qtdAgentes, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
         contadorRespostasAgentes = new Integer[qtdAgentes];
+        this.currentRound = 1;
 
         for (int i=0; i<contadorRespostasAgentes.length;i++){
             contadorRespostasAgentes[i] = 1;
@@ -41,10 +42,11 @@ public class UsigBProposer extends BProposer {
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 && usigComponent.verifyUI((UsigBProtocolMessage) protocolMessage)
-                && verifyCnt(((UsigBProtocolMessage) protocolMessage).getAssinaturaUsig(), ((UsigBProtocolMessage) protocolMessage).getAgentSend()-1)
+                && verifyCnt(((UsigBProtocolMessage) protocolMessage).getAssinaturaUsig(), (protocolMessage).getAgentSend()-1)
                 && isColisionFastProposer(protocolMessage.getAgentSend());
 
-        if (currentRound == protocolMessage.getRound()
+        if (verifyMsg((BProtocolMessage) protocolMessage)
+                && currentRound == protocolMessage.getRound()
                 && currentValue.get(currentRound) == null
                 && (condicao1 || condicao2)) {
 
@@ -61,8 +63,8 @@ public class UsigBProposer extends BProposer {
             }
 
             ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2A;
-            UsigBProtocolMessage responseMsg = usigComponent.createUI(new BProtocolMessage(
-                    msgType, protocolMessage.getRound(), getAgentId(), encrypt(msgType, keyPair.getPrivate()), keyPair.getPublic(), valResponseMsg));
+            UsigBProtocolMessage responseMsg = usigComponent.createUI(createAssignedMessage(new ProtocolMessage(
+                    msgType, protocolMessage.getRound(), getAgentId(), valResponseMsg), null, keyPair));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             getQuorumSender().sendTo(idAccetprosAndLearnersAndCFProposers(), quorumMessage);
@@ -73,7 +75,8 @@ public class UsigBProposer extends BProposer {
     public void phase2Prepare(ProtocolMessage protocolMessage) {
         UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage) protocolMessage;
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
-        if (currentRound < protocolMessage.getRound()
+        if (verifyMsg(usigBProtocolMessage)
+                && currentRound < protocolMessage.getRound()
                 && goodRoundValue(usigBProtocolMessage.getProofs(), protocolMessage.getRound())
                 && usigComponent.verifyUI(usigBProtocolMessage)
                 && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)) {

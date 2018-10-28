@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class UsigBAcceptor extends BAcceptor {
+public class UsigBAcceptor extends BAcceptor implements BAgent {
 
     private final IUsig usigComponenet = new UsigComponent(); // vetor com uma quantidade maior(vamos ignora a posicao zero)
     private final Integer[] contadorRespostasAgentes;
@@ -36,7 +36,8 @@ public class UsigBAcceptor extends BAcceptor {
     @Override
     public void phase1b(ProtocolMessage protocolMessage) {
         UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage)protocolMessage;
-        if(currentRound < protocolMessage.getRound()
+        if(verifyMsg(usigBProtocolMessage)
+                && currentRound < protocolMessage.getRound()
                 && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A
                 && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)){
             currentRound = protocolMessage.getRound();
@@ -44,8 +45,8 @@ public class UsigBAcceptor extends BAcceptor {
             Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
 
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1B;
-            UsigBProtocolMessage protocolMessageToSend = usigComponenet.createUI(new BProtocolMessage(messageType,
-                    currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), message1B));
+            UsigBProtocolMessage protocolMessageToSend = usigComponenet.createUI(createAssignedMessage(new ProtocolMessage(messageType,
+                    currentRound, getAgentId(), message1B), null, keyPair));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idCoordinatorAndLearners(), quorumMessage);
         }
@@ -76,7 +77,9 @@ public class UsigBAcceptor extends BAcceptor {
                 && usigComponenet.verifyUI(usigBProtocolMessage)
                 && (clientMessage).getClientMessage() != null;
 
-        if (currentRound <= round && (condicao1 || condicao2)) {
+        if (verifyMsg(usigBProtocolMessage)
+                && currentRound <= round
+                && (condicao1 || condicao2)) {
             vMapLastRound = getVmapLastRound();
 
             Integer agentId = protocolMessage.getAgentSend();
@@ -104,8 +107,8 @@ public class UsigBAcceptor extends BAcceptor {
             currentRound = round;
 
             ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2B;
-            UsigBProtocolMessage protocolSendMsg = usigComponenet.createUI(new BProtocolMessage(
-                    msgType, round, getAgentId(), encrypt(msgType, keyPair.getPrivate()), keyPair.getPublic(), vMapLastRound));
+            UsigBProtocolMessage protocolSendMsg = usigComponenet.createUI(createAssignedMessage(new ProtocolMessage(
+                    msgType, round, getAgentId(), vMapLastRound), null, keyPair));
 
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idLearners(), quorumMessage);
@@ -113,7 +116,6 @@ public class UsigBAcceptor extends BAcceptor {
     }
 
     private boolean verifyCnt(Integer valorRecebido, Integer agentId){
-//        return true;
         if(valorRecebido.equals(contadorRespostasAgentes[agentId])){
             contadorRespostasAgentes[agentId] = contadorRespostasAgentes[agentId]+1;
             return true;

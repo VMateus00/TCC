@@ -17,6 +17,14 @@ public class BProtocolMessage extends ProtocolMessage {
         this.proofs = proofs;
     }
 
+    public BProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend,
+                            Object message, Set<ProtocolMessage> proofs, byte[] assinatura, PublicKey publicKey) {
+        super(protocolMessageType, round, agentSend, message);
+        this.proofs = proofs;
+        this.assinatura = assinatura;
+        this.publicKey = publicKey;
+    }
+
     public Set<ProtocolMessage> getProofs() {
         return proofs;
     }

@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
-public class UsigBCoordinator extends BCoordinator {
+public class UsigBCoordinator extends BCoordinator implements BAgent {
 
     private final IUsig usigComponent = new UsigComponent();
     private final Integer[] contadorRespostasAgentes;
@@ -39,7 +39,7 @@ public class UsigBCoordinator extends BCoordinator {
             getvMap().put(currentRound, new HashMap<>());
 
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1A;
-            UsigBProtocolMessage protocolMessage = usigComponent.createUI(new BProtocolMessage(messageType, currentRound, getAgentId(), encrypt(messageType, keyPair.getPrivate()), keyPair.getPublic(), null));
+            UsigBProtocolMessage protocolMessage = usigComponent.createUI(createAssignedMessage(new ProtocolMessage(messageType, currentRound, getAgentId(),null), null,  keyPair));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idAcceptors(), quorumMessage);
         }
@@ -56,7 +56,8 @@ public class UsigBCoordinator extends BCoordinator {
         }
         protocolMessages.add(protocolMessage);
 
-        if (currentRound == protocolMessage.getRound()
+        if (verifyMsg((BProtocolMessage) protocolMessage)
+                && currentRound == protocolMessage.getRound()
                 && getMapFromRound(currentRound).isEmpty()
                 && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
 
@@ -83,8 +84,8 @@ public class UsigBCoordinator extends BCoordinator {
             }
 
             ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2S;
-            UsigBProtocolMessage msgToSend = usigComponent.createUI(new BProtocolMessage(
-                    msgType, currentRound, getAgentId(), encrypt(msgType, keyPair.getPrivate()), keyPair.getPublic(), getMapFromRound(currentRound), protocolMessages));
+            UsigBProtocolMessage msgToSend = usigComponent.createUI(createAssignedMessage(new ProtocolMessage(
+                    msgType, currentRound, getAgentId() , getMapFromRound(currentRound)), protocolMessages, keyPair));
 
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idAcceptorsAndCFProposers(), quorumMessage);
