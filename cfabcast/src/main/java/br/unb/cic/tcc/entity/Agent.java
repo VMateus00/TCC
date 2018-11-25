@@ -102,12 +102,13 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         return ArrayUtils.addAll(idCoordinator(), idLearners());
     }
 
-    protected boolean isColisionFastProposer(Integer idProposer){
+    public boolean isColisionFastProposer(Integer idProposer){ // Esse metodo só deve ser chamado pelos proposers
         return idProposer < 4; // REGRA ARBITRARIA, pode ser alterada dps
     }
 
-    public int[] idCFProposers(){
+    public int[] idCFProposers(int currentProposer){
         return idAgentes.get(Initializer.PROPOSERS).stream()
+                .filter(p->!p.equals(currentProposer))
                 .filter(this::isColisionFastProposer).mapToInt(p->p).toArray();
     }
 
@@ -120,11 +121,11 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         return ArrayUtils.addAll(idAcceptors(), idProposers());
     }
 
-    public int[] idAcceptorsAndCFProposers(){
-        return ArrayUtils.addAll(idAcceptors(), idCFProposers());
+    public int[] idAcceptorsAndCFProposers(int currentProposer){
+        return ArrayUtils.addAll(idAcceptors(), idCFProposers(currentProposer));
     }
 
-    public int[] idAccetprosAndLearnersAndCFProposers(){
-        return ArrayUtils.addAll(idLearners(), idAcceptorsAndCFProposers());
+    public int[] idAccetprosAndLearnersAndCFProposers(int currentProposer){
+        return ArrayUtils.addAll(idLearners(), idAcceptorsAndCFProposers(currentProposer));
     }
 }

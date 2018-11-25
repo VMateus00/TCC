@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.entity;
 
+import br.unb.cic.tcc.definitions.CurrentInstanceProposer;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
@@ -10,14 +11,19 @@ import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     protected int currentRound = 1;
     protected Map<Integer, Object> currentValue = new HashMap<>(); // round, valorProposto
+    protected HashSet<CurrentInstanceProposer> instancias = new HashSet();
     private final Boolean isColisionFastProposer;
+
+    private Integer instanciaExecucao = 0;
 
     public Proposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender proposerSender = new AgentSender(id);
@@ -28,37 +34,42 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         setQuorumReplica(proposerReplica);
         setQuorumSender(proposerSender);
 
-        isColisionFastProposer = isColisionFastProposer();
+        isColisionFastProposer = isColisionFastProposer(id);
     }
 
     public void phase2A(ProtocolMessage protocolMessage) {
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
+        CurrentInstanceProposer instanciaAtual = getInstanciaAtual(protocolMessage);
         // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
 
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && isColisionFastProposer(protocolMessage.getAgentSend());
 
-        if (currentRound == protocolMessage.getRound()
-                && (currentValue.get(currentRound) == null)
+        if (protocolMessage.getRound().equals(instanciaAtual.getRound()) // verifica se o round da instancia atual é o mesmo
+                && (instanciaAtual.getProposedValueOnRound(protocolMessage.getRound()) == null)
                 && (condicao1 || condicao2)) {
 
             currentValue.put(currentRound, protocolMessage.getMessage());
 
-            ProposerClientMessage valResponseMsg = null;
+            ProposerClientMessage valResponseMsg;
             if (protocolMessage.getMessage() instanceof ClientMessage) {
                 valResponseMsg = new ProposerClientMessage(getAgentId(), (ClientMessage) protocolMessage.getMessage());
             } else if (protocolMessage.getMessage() instanceof ProposerClientMessage) {
                 valResponseMsg = (ProposerClientMessage) protocolMessage.getMessage();
+            } else if(protocolMessage.getMessage() == null) {
+                valResponseMsg = null;
             } else {
-                System.out.println("Erro");
-//                throw new Exception("Nao pode entrar como ProposerClientMessage nesse ponto");
+                System.out.println("O CF-proposer "+getAgentId()+" não conseguiu reconhecer a mensagem recebida. E portanto nao executou a phase2 corretamente.");
+                return;
             }
-            ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), getAgentId(), valResponseMsg);
+            ProtocolMessage responseMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(), getAgentId(),
+                    protocolMessage.getInstanciaExecucao(), valResponseMsg);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
+            instanciaAtual.saveProposedValueOnRound(protocolMessage.getRound(), valResponseMsg);
             if (protocolMessage.getMessage() != null) {
                 System.out.println("Proposer (" + getAgentId() + ") enviou msg to acceptors and cfProposers");
-                getQuorumSender().sendTo(idAcceptorsAndCFProposers(), quorumMessage);
+                getQuorumSender().sendTo(idAcceptorsAndCFProposers(getAgentId()), quorumMessage);
             } else {
                 System.out.println("Proposer (" + getAgentId() + ") enviou msg to leaners");
                 getQuorumSender().sendTo(idLearners(), quorumMessage);
@@ -68,32 +79,53 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     public void phase2Prepare(ProtocolMessage protocolMessage) {
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
-        if (currentRound < protocolMessage.getRound()) {
-            currentRound = protocolMessage.getRound();
+        CurrentInstanceProposer currentInstance = getInstanciaAtual(protocolMessage);
+
+        if (currentInstance.getRound() < protocolMessage.getRound()) {
+            currentInstance.setRound(protocolMessage.getRound());
 
             Map<Integer, Set<ClientMessage>> msgVal = (Map<Integer, Set<ClientMessage>>) protocolMessage.getMessage();
             if (msgVal != null && !msgVal.isEmpty()) {
-                currentValue.put(currentRound, msgVal.get(getAgentId()));
+                currentValue.put(protocolMessage.getRound(), msgVal.get(getAgentId()));
+                currentInstance.saveProposedValueOnRound(protocolMessage.getRound(), msgVal.get(getAgentId()));
             } else {
-                currentValue.put(currentRound, null);
+                currentInstance.saveProposedValueOnRound(protocolMessage.getRound(), null);
             }
         }
     }
 
-    public void propose(ClientMessage clientMessage) {
-        ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE, currentRound, getAgentId(), clientMessage);
-        QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
-        getQuorumSender().sendTo(idCFProposers(), quorumMessage);
+    private CurrentInstanceProposer getInstanciaAtual(ProtocolMessage protocolMessage) {
+        Optional<CurrentInstanceProposer> instanciaEncontrada = instancias.stream()
+                .filter(p -> p.getInstanciaAtual().equals(protocolMessage.getInstanciaExecucao()))
+                .findFirst();
+        if(instanciaEncontrada.isPresent()){
+            return instanciaEncontrada.get();
+        } else {
+            CurrentInstanceProposer currentInstance = new CurrentInstanceProposer(++instanciaExecucao);
+            instancias.add(currentInstance);
+            return currentInstance;
+        }
+    }
 
+    public void propose(ClientMessage clientMessage) {
+        CurrentInstanceProposer currentInstance = new CurrentInstanceProposer(++instanciaExecucao);
+        instancias.add(currentInstance);
+
+        ProtocolMessage protocolMessage = new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE,
+                1, getAgentId(), currentInstance.getInstanciaAtual(), clientMessage);
+        QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
+
+        System.out.println("Proposer ("+getAgentId()+") propos o valor: "+clientMessage);
         System.out.println("Proposer (" + getAgentId() + ") enviou uma proposta para os CFProposers");
+        if(isColisionFastProposer){
+            phase2A(protocolMessage);
+        }else{
+            getQuorumSender().sendTo(idCFProposers(getAgentId()), quorumMessage);
+        }
     }
 
     public boolean isCoordinator() {
         return getAgentId() == 1;
-    }
-
-    public Boolean isColisionFastProposer() {
-        return isColisionFastProposer;
     }
 
     @Override

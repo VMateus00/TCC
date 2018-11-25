@@ -7,12 +7,21 @@ public class ProtocolMessage implements Serializable, Comparable {
     private ProtocolMessageType protocolMessageType;
     private Integer agentSend;
     private Integer round;
+    private Integer instanciaExecucao; //TODO pensar em um nome melhor
     private Object message;
 
     public ProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, Object message) {
         this.protocolMessageType = protocolMessageType;
         this.round = round;
         this.agentSend = agentSend;
+        this.message = message;
+    }
+
+    public ProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, Integer instanciaExecucao, Object message) {
+        this.protocolMessageType = protocolMessageType;
+        this.round = round;
+        this.agentSend = agentSend;
+        this.instanciaExecucao = instanciaExecucao;
         this.message = message;
     }
 
@@ -56,6 +65,14 @@ public class ProtocolMessage implements Serializable, Comparable {
 
     public void setAgentSend(Integer agentSend) {
         this.agentSend = agentSend;
+    }
+
+    public Integer getInstanciaExecucao() {
+        return instanciaExecucao;
+    }
+
+    public void setInstanciaExecucao(Integer instanciaExecucao) {
+        this.instanciaExecucao = instanciaExecucao;
     }
 
     @Override

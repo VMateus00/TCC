@@ -71,7 +71,7 @@ public class Quoruns {
     }
 
     public static  List<Proposer> getCFProposersOnRound(int round){
-        return proposers.stream().filter(Proposer::isColisionFastProposer).collect(Collectors.toList());
+        return proposers.stream().filter(p->p.isColisionFastProposer(-1)).collect(Collectors.toList());
     }
 
     public static int[] idLearners(){
@@ -83,7 +83,7 @@ public class Quoruns {
     }
 
     public static int[] idNCFProposers(int round){ // NOT COLISION FAST PROPOSERS
-         return proposers.stream().filter(p-> !p.isColisionFastProposer()).mapToInt(Proposer::getAgentId).toArray();
+         return proposers.stream().filter(p-> !p.isColisionFastProposer(-1)).mapToInt(Proposer::getAgentId).toArray();
     }
 
     public static int[] idAcceptors(){
@@ -95,7 +95,7 @@ public class Quoruns {
     }
 
     public static int[] idCFProposers(int round) {
-        return getCFProposersOnRound(round).stream().filter(Proposer::isColisionFastProposer).mapToInt(Proposer::getAgentId).toArray();
+        return getCFProposersOnRound(round).stream().filter(p->p.isColisionFastProposer(-1)).mapToInt(Proposer::getAgentId).toArray();
     }
 
     public static int[] idAcceptorsLearnersCFProposers(int round){
@@ -104,7 +104,7 @@ public class Quoruns {
 
     // false se nao pertence aos CFProposers ou se nao for
     public static boolean isCFProposerOnRound(int agendId, int round){
-        return getCFProposersOnRound(round).stream().filter(Proposer::isColisionFastProposer).anyMatch(p->p.getAgentId().equals(agendId));
+        return getCFProposersOnRound(round).stream().filter(p->p.isColisionFastProposer(-1)).anyMatch(p->p.getAgentId().equals(agendId));
     }
 
     public static int[] idAcceptorsAndCFProposers(int round) {

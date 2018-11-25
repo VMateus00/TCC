@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.entity;
 
+import br.unb.cic.tcc.definitions.CurrentInstanceAcceptor;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
@@ -13,11 +14,15 @@ import quorum.communication.QuorumMessage;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
-    protected int currentRound = 0;
-    protected int roundAceitouUltimaVez = 0; // começa nunca tendo aceitado nada, por isso 0
+//    protected int currentRound = 0;
+//    protected int roundAceitouUltimaVez = 0; // começa nunca tendo aceitado nada, por isso 0
+//    protected int instanciaAtual = 0;
+//    protected Map<Integer, Map<Integer, Object>> valueByInstancia = new HashMap<>(); //instancia <round, valor>
+    protected HashSet<CurrentInstanceAcceptor> instancias = new HashSet();
 
     public Acceptor(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender acceptorSender = new AgentSender(id);
@@ -30,20 +35,26 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
     }
 
     public void phase1b(ProtocolMessage protocolMessage) {
-        if(currentRound < protocolMessage.getRound() && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
-            currentRound = protocolMessage.getRound();
+        CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
 
-            Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
+        if(instanciaAtual.getRound() < protocolMessage.getRound()
+                && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
+            instanciaAtual.setRound(protocolMessage.getRound());
 
-            ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, currentRound, getAgentId(), message1B);
+            Message1B message1B = new Message1B(instanciaAtual.getRoundAceitouUltimaVez(), getAgentId(), instanciaAtual.getVmapLastRound());
+
+            ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, instanciaAtual.getRound(), getAgentId(), instanciaAtual.getInstanciaAtual(), message1B);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idCoordinator(), quorumMessage);
         }
     }
 
     public void phase2b(ProtocolMessage protocolMessage) {
-        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b");
-        Map<Integer, Set<ClientMessage>> vMapLastRound = getVmapLastRound();
+        CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
+        Integer roundAceitouUltimaVez = instanciaAtual.getRoundAceitouUltimaVez();
+        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b - instancia:" +instanciaAtual.getInstanciaAtual());
+
+        Map<Integer, Set<ClientMessage>> vMapLastRound = instanciaAtual.getVmapLastRound();
 
         int round = protocolMessage.getRound();
 
@@ -58,20 +69,16 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 && (clientMessage).getClientMessage() != null;
 
-        if (currentRound <= round && (condicao1 || condicao2)) {
-            roundAceitouUltimaVez = round;
-            currentRound = round;
-            vMapLastRound = getVmapLastRound();
+        if (instanciaAtual.getRound() <= round && (condicao1 || condicao2)) {
+            instanciaAtual.setRoundAceitouUltimaVez(round);
+            instanciaAtual.setRound(round);
+            vMapLastRound = instanciaAtual.getVmapLastRound();
 
             Integer agentId = protocolMessage.getAgentSend();
             if (condicao1) {
                 ((HashMap<Integer, Set<ClientMessage>>)protocolMessage.getMessage())
-                        .forEach((k,v)->getVmapLastRound().put(k,v));
-                // TODO atualizar o valor no mapa
+                        .forEach((k,v)->instanciaAtual.getVmapLastRound().put(k,v));
             } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
-                vMapLastRound = getVmapLastRound();
-
-                // TODO verificar se é para zerar o valor do vMapLastRound
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
 
                 for (Integer proposerId : idNCFProposers()) {
@@ -88,21 +95,30 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
                 vMapLastRound.get(agentId).add(clientMessage.getClientMessage());
             }
 
-            ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), vMapLastRound);
+            ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), instanciaAtual.getInstanciaAtual(), vMapLastRound);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idLearners(), quorumMessage);
         }
     }
 
-    protected Map<Integer, Set<ClientMessage>> getVmapLastRound() {
-        getvMap().putIfAbsent(roundAceitouUltimaVez, new HashMap<>());
-        return getvMap().get(roundAceitouUltimaVez);
+    protected CurrentInstanceAcceptor getInstanciaAtual(Integer instancia){
+        Optional<CurrentInstanceAcceptor> first = instancias.stream()
+                .filter(p -> p.getInstanciaAtual().equals(instancia))
+                .findFirst();
+
+        if(first.isPresent()){
+            return first.get();
+        } else {
+            CurrentInstanceAcceptor currentInstance = new CurrentInstanceAcceptor(instancia);
+            instancias.add(currentInstance);
+            return currentInstance;
+        }
     }
 
     @Override
-    public void limpaDadosExecucao() {
-        currentRound = 1;
-        roundAceitouUltimaVez = 0;
-        setvMap(new HashMap<>());
+    public void limpaDadosExecucao() { // TODO remover esse metodo
+//        currentRound = 1;
+//        roundAceitouUltimaVez = 0;
+//        setvMap(new HashMap<>());
     }
 }

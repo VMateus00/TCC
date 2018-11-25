@@ -27,7 +27,8 @@ public abstract class Initializer{
 
     public void initializeQuoruns(){
         createQuorunsReadingFile();
-        initializeProtocol();
+//        initializeProtocol();
+        System.out.println();
     }
 
     private void initializeProtocol() {
