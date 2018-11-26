@@ -18,10 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 
 public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
-//    protected int currentRound = 0;
-//    protected int roundAceitouUltimaVez = 0; // começa nunca tendo aceitado nada, por isso 0
-//    protected int instanciaAtual = 0;
-//    protected Map<Integer, Map<Integer, Object>> valueByInstancia = new HashMap<>(); //instancia <round, valor>
     protected HashSet<CurrentInstanceAcceptor> instancias = new HashSet();
 
     public Acceptor(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
@@ -52,7 +48,7 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
     public void phase2b(ProtocolMessage protocolMessage) {
         CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         Integer roundAceitouUltimaVez = instanciaAtual.getRoundAceitouUltimaVez();
-        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b - instancia:" +instanciaAtual.getInstanciaAtual());
+//        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b - instancia:" +instanciaAtual.getInstanciaAtual());
 
         Map<Integer, Set<ClientMessage>> vMapLastRound = instanciaAtual.getVmapLastRound();
 
@@ -113,12 +109,5 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
             instancias.add(currentInstance);
             return currentInstance;
         }
-    }
-
-    @Override
-    public void limpaDadosExecucao() { // TODO remover esse metodo
-//        currentRound = 1;
-//        roundAceitouUltimaVez = 0;
-//        setvMap(new HashMap<>());
     }
 }

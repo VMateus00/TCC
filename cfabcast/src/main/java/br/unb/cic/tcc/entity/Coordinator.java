@@ -86,11 +86,4 @@ public class Coordinator extends Agent<CoordinatorReplica, AgentSender> {
             getQuorumSender().sendTo(agentsToSendMsg, quorumMessage);
         }
     }
-
-    @Override
-    public void limpaDadosExecucao() {
-        currentRound = 1;
-        msgsRecebidas = new ConcurrentHashMap<>();
-        setvMap(new HashMap<>());
-    }
 }

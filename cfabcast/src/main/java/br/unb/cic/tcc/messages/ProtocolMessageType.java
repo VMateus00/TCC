@@ -6,5 +6,7 @@ public enum ProtocolMessageType {
     MESSAGE_2A,
     MESSAGE_2B,
     MESSAGE_2S,
-    MESSAGE_PROPOSE;
+    MESSAGE_PROPOSE,
+
+    MESSAGE_LEARNED;
 }

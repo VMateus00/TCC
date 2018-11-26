@@ -1,45 +1,67 @@
 package br.unb.cic.tcc.client;
 
+import br.unb.cic.tcc.entity.Agent;
+import br.unb.cic.tcc.main.Initializer;
 import br.unb.cic.tcc.messages.ClientMessage;
-import br.unb.cic.tcc.quorum.Quoruns;
+import br.unb.cic.tcc.messages.ProtocolMessage;
+import br.unb.cic.tcc.quorum.AgentSender;
+import br.unb.cic.tcc.quorum.ClientReplica;
+import quorum.communication.MessageType;
+import quorum.communication.QuorumMessage;
+import quorum.core.QuorumSender;
 
-import java.util.HashMap;
-import java.util.List;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
 
-public class Client implements Runnable {
+public class Client extends Agent<ClientReplica, QuorumSender> implements Runnable {
 
-    private static Semaphore semaphore = new Semaphore(0);
+    public Client(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
+        AgentSender leanerSender = new AgentSender(id);
+        ClientReplica learnerReplica = new ClientReplica(id, host, port, this);
 
-    private static Map<Integer, Map<Integer, Set<ClientMessage>>> resultado = new HashMap<>();
+        setAgentId(id);
+        idAgentes = agentsMap;
+        setQuorumSender(leanerSender);
+        setQuorumReplica(learnerReplica);
+    }
 
     @Override
     public void run() {
-        ClientMessage msg = new ClientMessage("aprende: " + 0);
-        Quoruns.startInstancia(msg);
-
-        try {
-            semaphore.acquire();
-            System.out.println(resultado);
-            System.out.println("------------------------------------------");
-//            Thread.sleep(1000*10);
-//            Quoruns.startInstancia(new ClientMessage("aprende 1"));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        for (int i = 0; i < 100; i++) {
+            ClientMessage clientMessage = new ClientMessage("Instrução " + i, getAgentId());
+            enviaMsgFromClientToProposer(clientMessage);
+            System.out.println("Client ("+getAgentId()+") enviou msg com id:" + clientMessage.getIdMsg() + " às "+ new Date());
         }
     }
 
-    public static Semaphore getSemaphore() {
-        return semaphore;
+    private void enviaMsgFromClientToProposer(ClientMessage clientMessage){
+        // By default there will be only two CF-propers, with this, we will only send proposes to these two.
+
+        Integer[] idProposers = idAgentes.get(Initializer.PROPOSERS).stream()
+                .sorted(Comparator.naturalOrder())
+                .toArray(Integer[]::new);
+
+        if(idProposers.length > 1){
+            int cfProposer[];
+            if(clientMessage.getIdMsg()%2 == 0){
+                int[] temp = {idProposers[0]};
+                cfProposer = temp;
+            }else{
+                int[] temp = {idProposers[1]};
+                cfProposer = temp;
+            }
+            getQuorumSender().sendTo(cfProposer
+                    ,new QuorumMessage(MessageType.QUORUM_REQUEST, clientMessage, getAgentId()));
+        } else {
+            // send to 1
+            getQuorumSender().sendTo(new int[idProposers[0]], new QuorumMessage(MessageType.QUORUM_REQUEST, clientMessage, getAgentId()));
+        }
     }
 
-    public static Map<Integer, Map<Integer, Set<ClientMessage>>> getResultado() {
-        return resultado;
-    }
-
-    public static void setResultado(Map<Integer, Map<Integer, Set<ClientMessage>>> resultado) {
-        Client.resultado = resultado;
+    public void mostraRecebeuMensagem(ProtocolMessage protocolMessage){
+        System.out.println("Client ("+getAgentId()+") recebeu que a mensagem: "+"idMessagem"+" foi recebida às " + new Date());
+        // TODO
     }
 }

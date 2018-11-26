@@ -23,7 +23,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
     protected HashSet<CurrentInstanceProposer> instancias = new HashSet();
     private final Boolean isColisionFastProposer;
 
-    private Integer instanciaExecucao = 0;
+    private static Integer instanciaExecucao = 0;
 
     public Proposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender proposerSender = new AgentSender(id);
@@ -38,10 +38,8 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
     }
 
     public void phase2A(ProtocolMessage protocolMessage) {
-        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
+//        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
         CurrentInstanceProposer instanciaAtual = getInstanciaAtual(protocolMessage);
-        // nao precisa verificar aqui se é CFproposer, pois quem chama verifica
-
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && isColisionFastProposer(protocolMessage.getAgentSend());
 
@@ -68,17 +66,17 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
             instanciaAtual.saveProposedValueOnRound(protocolMessage.getRound(), valResponseMsg);
             if (protocolMessage.getMessage() != null) {
-                System.out.println("Proposer (" + getAgentId() + ") enviou msg to acceptors and cfProposers");
+//                System.out.println("Proposer (" + getAgentId() + ") enviou msg to acceptors and cfProposers");
                 getQuorumSender().sendTo(idAcceptorsAndCFProposers(getAgentId()), quorumMessage);
             } else {
-                System.out.println("Proposer (" + getAgentId() + ") enviou msg to leaners");
+//                System.out.println("Proposer (" + getAgentId() + ") enviou msg to leaners");
                 getQuorumSender().sendTo(idLearners(), quorumMessage);
             }
         }
     }
 
     public void phase2Prepare(ProtocolMessage protocolMessage) {
-        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
+//        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
         CurrentInstanceProposer currentInstance = getInstanciaAtual(protocolMessage);
 
         if (currentInstance.getRound() < protocolMessage.getRound()) {
@@ -101,13 +99,13 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         if(instanciaEncontrada.isPresent()){
             return instanciaEncontrada.get();
         } else {
-            CurrentInstanceProposer currentInstance = new CurrentInstanceProposer(++instanciaExecucao);
+            CurrentInstanceProposer currentInstance = new CurrentInstanceProposer(instanciaExecucao);
             instancias.add(currentInstance);
             return currentInstance;
         }
     }
 
-    public void propose(ClientMessage clientMessage) {
+    public synchronized void propose(ClientMessage clientMessage) {
         CurrentInstanceProposer currentInstance = new CurrentInstanceProposer(++instanciaExecucao);
         instancias.add(currentInstance);
 
@@ -115,8 +113,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
                 1, getAgentId(), currentInstance.getInstanciaAtual(), clientMessage);
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
 
-        System.out.println("Proposer ("+getAgentId()+") propos o valor: "+clientMessage);
-        System.out.println("Proposer (" + getAgentId() + ") enviou uma proposta para os CFProposers");
+        System.out.println("Proposer ("+getAgentId()+") propos o valor: "+clientMessage + " na instancia: "+currentInstance.getInstanciaAtual());
         if(isColisionFastProposer){
             phase2A(protocolMessage);
         }else{
@@ -128,10 +125,4 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         return getAgentId() == 1;
     }
 
-    @Override
-    public void limpaDadosExecucao() {
-        currentRound = 1;
-        currentValue = new HashMap<>();
-        setvMap(new HashMap<>());
-    }
 }

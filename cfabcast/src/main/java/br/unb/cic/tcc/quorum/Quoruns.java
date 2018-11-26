@@ -34,6 +34,7 @@ public class Quoruns {
     private static List<Coordinator> coordinators = new ArrayList<>();
     private static List<Learner> learners = new ArrayList<>();
     private static List<Acceptor> acceptors = new ArrayList<>();
+    private static List<Client> clients = new ArrayList<>();
 
     private static Map<Integer, Set<Integer>> listaDeRoundsConcluidos = new HashMap<>(); // <round, learners>
     private static Map<Integer, Map<Integer, Set<ClientMessage>>> aprendidosPeloLearner = new HashMap<>(); // learners <proposers, msgs>
@@ -68,6 +69,10 @@ public class Quoruns {
 
     public static List<Coordinator> getCoordinators() {
         return coordinators;
+    }
+
+    public static List<Client> getClients() {
+        return clients;
     }
 
     public static  List<Proposer> getCFProposersOnRound(int round){
@@ -117,37 +122,5 @@ public class Quoruns {
 
     public static Integer getRoundAtual(){
         return roundAtual;
-    }
-
-    public static synchronized void liberaAtualizacaoRound(Integer learnerId, Map<Integer, Set<ClientMessage>> learnedThisRound){
-        Map<Integer, Set<ClientMessage>> clientMessages = aprendidosPeloLearner.putIfAbsent(learnerId, new HashMap<>());
-        if(clientMessages == null){
-            clientMessages = aprendidosPeloLearner.put(learnerId, learnedThisRound);
-        } else {
-            learnedThisRound.forEach(clientMessages::putIfAbsent);
-        }
-
-        if(aprendidosPeloLearner.size() == Quoruns.getLearners().size()){
-            // Protocolo concluido.
-            Quoruns.roundAtual = 1;
-            Quoruns.getLearners().forEach(Agent::limpaDadosExecucao);
-            Quoruns.getAcceptors().forEach(Agent::limpaDadosExecucao);
-            Quoruns.getProposers().forEach(Agent::limpaDadosExecucao);
-            Quoruns.getCoordinators().forEach(Agent::limpaDadosExecucao);
-
-            Map<Integer, Map<Integer, Set<ClientMessage>>> saida = new HashMap<>();
-            saida.putAll(aprendidosPeloLearner);
-            aprendidosPeloLearner = new HashMap<>();
-            Client.setResultado(saida);
-//            try {
-//                Thread.sleep(1000 * 10); // Dorme para garantir que vao parar de enviar msgs
-//                Quoruns.getAcceptors().forEach(Acceptor::liberaExecucao);
-//                Quoruns.getProposers().forEach(Proposer::liberaExecucao);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-
-            Client.getSemaphore().release();
-        }
     }
 }

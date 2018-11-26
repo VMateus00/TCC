@@ -76,8 +76,6 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         return mapOfRound;
     }
 
-    public abstract void limpaDadosExecucao();
-
     public static Integer getRoundAtual() {
         return roundAtual;
     }

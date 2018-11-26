@@ -2,12 +2,16 @@ package br.unb.cic.tcc.entity;
 
 import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.definitions.CurrentInstanceLearner;
+import br.unb.cic.tcc.main.AgentMapUtil;
+import br.unb.cic.tcc.main.Initializer;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AgentSender;
 import br.unb.cic.tcc.quorum.LearnerReplica;
 import br.unb.cic.tcc.quorum.Quoruns;
+import quorum.communication.MessageType;
+import quorum.communication.QuorumMessage;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +29,8 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
     protected Map<Integer, Set<ProtocolMessage>> messagesFromProposers = new ConcurrentHashMap<>();
 
     protected HashSet<CurrentInstanceLearner> instancias = new HashSet<>();
+
+    private Integer teste = 0;
 
     public Learner(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender leanerSender = new AgentSender(id);
@@ -81,8 +87,18 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
             q2bVals.forEach(learnedThisRound::put);
             w.forEach(learnedThisRound::put);
 
+            ProtocolMessage learnedMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_LEARNED, protocolMessage.getRound(),
+                    getAgentId(), protocolMessage.getInstanciaExecucao(), learnedThisRound);
+
+            learnedThisRound.forEach((k,v)->
+                teste = v.stream().map(ClientMessage::getIdClient).collect(Collectors.toList()).get(0));
+
+//            Integer[] protocol = getIdAgentes().get(Initializer.CLIENTS).stream().toArray(Integer[]::new);
+            int[] clientId = {teste};
+            getQuorumSender().sendTo(clientId,
+                    new QuorumMessage(MessageType.QUORUM_REQUEST, learnedMsg, getAgentId()));
+
             System.out.println("Learner (" + getAgentId() + ") - aprendeu na instancia ("+currentInstance.getInstanciaAtual()+"): " + learnedThisRound);
-//            Quoruns.liberaAtualizacaoRound(getAgentId(), learnedThisRound);
         }
     }
 
@@ -106,10 +122,4 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         return getvMap().get(currentRound);
     }
 
-    @Override
-    public void limpaDadosExecucao() {
-        messagesFromAcceptors = new ConcurrentHashMap<>();
-        messagesFromProposers = new ConcurrentHashMap<>();
-        setvMap(new HashMap<>());
-    }
 }

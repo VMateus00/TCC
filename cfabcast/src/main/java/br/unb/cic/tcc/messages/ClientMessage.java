@@ -3,24 +3,46 @@ package br.unb.cic.tcc.messages;
 import java.io.Serializable;
 
 public class ClientMessage implements Serializable, Comparable {
-    private String msg;
 
-    public ClientMessage(String msg) {
-        this.msg = msg;
+    private final String instructionToExecute;
+    private final Integer idClient;
+    private final Integer idMsg;
+
+    private static Integer contadorId = 0;
+
+    public ClientMessage(String instructionToExecute, Integer idClient) {
+        this.instructionToExecute = instructionToExecute;
+        this.idClient = idClient;
+
+        ClientMessage.contadorId++;
+        idMsg = ClientMessage.contadorId;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getInstructionToExecute() {
+        return instructionToExecute;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public Integer getIdClient() {
+        return idClient;
+    }
+
+    public Integer getIdMsg() {
+        return idMsg;
+    }
+
+    public static Integer getContadorId() {
+        return contadorId;
+    }
+
+    public static void setContadorId(Integer contadorId) {
+        ClientMessage.contadorId = contadorId;
     }
 
     @Override
     public String toString() {
         return "ClientMessage{" +
-                "msg='" + msg + '\'' +
+                "instructionToExecute='" + instructionToExecute + '\'' +
+                ", idClient=" + idClient +
                 '}';
     }
 
@@ -29,6 +51,6 @@ public class ClientMessage implements Serializable, Comparable {
         if(!(o instanceof ClientMessage)){
             return -1;
         }
-        return ((ClientMessage)o).getMsg().compareTo(this.getMsg());
+        return ((ClientMessage)o).getInstructionToExecute().compareTo(this.getInstructionToExecute());
     }
 }

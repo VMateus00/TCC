@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.main;
 
+import br.unb.cic.tcc.client.Client;
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.entity.Coordinator;
 import br.unb.cic.tcc.entity.Learner;
@@ -20,6 +21,8 @@ public abstract class Initializer{
     public static final String PROPOSERS = "#Proposers";
     public static final String LEANERS = "#Leaners";
     public static final String ACCEPTORS = "#Acceptors";
+    public static final String PROTOCOL = "#Protocol";
+    public static final String CLIENTS = "#Clients";
 
     private static boolean isAlreadyExecuted = false;
 
@@ -65,6 +68,8 @@ public abstract class Initializer{
                         actualLine = insertOnQuorum(bufferedReader, LEANERS, agentsMap);
                     } else if(actualLine.contains(ACCEPTORS)){
                         actualLine = insertOnQuorum(bufferedReader, ACCEPTORS, agentsMap);
+                    } else if(actualLine.contains(CLIENTS)){
+                        actualLine = insertOnQuorum(bufferedReader, CLIENTS, agentsMap);
                     } else {
                         actualLine = bufferedReader.readLine();
                     }
@@ -130,6 +135,9 @@ public abstract class Initializer{
                     case ACCEPTORS:
                         createAcceptor(id, host, port, agentsMap);
                         break;
+                    case CLIENTS:
+                        createClient(id, host, port, agentsMap);
+                        break;
                     default:
                         break;
                 }
@@ -137,6 +145,10 @@ public abstract class Initializer{
             actualLine = bufferedReader.readLine();
         }
         return actualLine;
+    }
+
+    private void createClient(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
+        Quoruns.getClients().add(new Client(id, host, port, agentsMap));
     }
 
     private void createCoordinator(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
