@@ -5,6 +5,7 @@ import br.unb.cic.tcc.agent.BCoordinator;
 import br.unb.cic.tcc.agent.BLearner;
 import br.unb.cic.tcc.agent.BProposer;
 import br.unb.cic.tcc.client.Client;
+import br.unb.cic.tcc.quorum.Quoruns;
 
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +54,6 @@ public class BizantineMain {
 
         Thread.sleep(5*1000);
         System.out.println("Propor msg ---------------------------------------------------------------------------");
-        new Client().run();
+        Quoruns.getClients().forEach(Client::run);
     }
 }
