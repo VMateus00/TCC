@@ -1,5 +1,6 @@
 package br.unb.cic.tcc.agent;
 
+import br.unb.cic.tcc.definitions.CurrentInstanceAcceptor;
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
@@ -29,16 +30,16 @@ public class BAcceptor extends Acceptor implements BAgent {
 
     @Override
     public void phase1b(ProtocolMessage protocolMessage) {// Igual superClasse, menos assinatura da msg
+        CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         if(verifyMsg((BProtocolMessage) protocolMessage)
-                && currentRound < protocolMessage.getRound()
+                && instanciaAtual.getRound() < protocolMessage.getRound()
                 && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
-            currentRound = protocolMessage.getRound();
+            instanciaAtual.setRound(protocolMessage.getRound());
 
-            Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
+            Message1B message1B = new Message1B(instanciaAtual.getRound(), getAgentId(), instanciaAtual.getVmapLastRound());
 
-            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1B;
-            BProtocolMessage protocolMessageToSend = createAssignedMessage(new ProtocolMessage(messageType,
-                    currentRound, getAgentId(), message1B), null, keyPair);
+            ProtocolMessage message = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, instanciaAtual.getRound(), getAgentId(), instanciaAtual.getInstanciaAtual(), message1B);
+            BProtocolMessage protocolMessageToSend = createAssignedMessage(message, null, keyPair);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idCoordinator(), quorumMessage);
         }
@@ -46,8 +47,10 @@ public class BAcceptor extends Acceptor implements BAgent {
 
     @Override
     public void phase2b(ProtocolMessage protocolMessage) {
+        CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
+
         System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b");
-        Map<Integer, Set<ClientMessage>> vMapLastRound = getVmapLastRound();
+        Map<Integer, Set<ClientMessage>> vMapLastRound = instanciaAtual.getVmapLastRound();
 
         int round = protocolMessage.getRound();
 
@@ -56,25 +59,25 @@ public class BAcceptor extends Acceptor implements BAgent {
             clientMessage = (ProposerClientMessage) protocolMessage.getMessage();
         }
 
-        boolean goodRoundValueResult = goodRoundValue(((BProtocolMessage) protocolMessage).getProofs(), protocolMessage.getRound());
+        boolean goodRoundValueResult = goodRoundValue(((BProtocolMessage) protocolMessage).getProofs());
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S &&
                 (vMapLastRound.isEmpty() ||
-                (goodRoundValueResult && (protocolMessage.getMessage() != null && roundAceitouUltimaVez < round)));
+                (goodRoundValueResult && (protocolMessage.getMessage() != null && instanciaAtual.getRoundAceitouUltimaVez() < round)));
 
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 && goodRoundValueResult
                 && (clientMessage).getClientMessage() != null;
 
         if (verifyMsg((BProtocolMessage) protocolMessage)
-                && currentRound <= round && (condicao1 || condicao2)) {
-            vMapLastRound = getVmapLastRound();
+                && instanciaAtual.getRound() <= round && (condicao1 || condicao2)) {
+            vMapLastRound = instanciaAtual.getVmapLastRound();
 
             Integer agentId = protocolMessage.getAgentSend();
             if (condicao1) {
                 ((HashMap<Integer, Set<ClientMessage>>)protocolMessage.getMessage())
-                        .forEach((k,v)->getVmapLastRound().put(k,v));
-            } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
-                vMapLastRound = getVmapLastRound();
+                        .forEach((k,v)->instanciaAtual.getVmapLastRound().put(k,v));
+            } else if (condicao2 && (instanciaAtual.getRoundAceitouUltimaVez() < round || vMapLastRound.isEmpty())) {
+                vMapLastRound = instanciaAtual.getVmapLastRound();
                 // TODO verificar se é para zerar o valor do vMapLastRound
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
 
@@ -91,18 +94,18 @@ public class BAcceptor extends Acceptor implements BAgent {
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
                 vMapLastRound.get(agentId).add(clientMessage.getClientMessage());
             }
-            roundAceitouUltimaVez = round;
-            currentRound = round;
+            instanciaAtual.setRoundAceitouUltimaVez(round);
+            instanciaAtual.setRound(round);
 
-            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2B;
-            BProtocolMessage protocolSendMsg = createAssignedMessage(new ProtocolMessage(messageType,
-                    round, getAgentId(), vMapLastRound), null, keyPair);
+            ProtocolMessage message = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(),
+                    instanciaAtual.getInstanciaAtual(), vMapLastRound);
+            BProtocolMessage protocolSendMsg = createAssignedMessage(message, null, keyPair);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idLearners(), quorumMessage);
         }
     }
 
-    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages, Integer round) {
+    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) {
         int kMax = protocolMessages.stream()
                 .map(p -> (Message1B) p.getMessage())
                 .mapToInt(Message1B::getRoundAceitouUltimaVez)

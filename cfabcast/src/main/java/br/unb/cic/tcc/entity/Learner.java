@@ -99,7 +99,7 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         }
     }
 
-    private Map<Integer, Set<ClientMessage>> getLearnedOnInstance(CurrentInstanceLearner currentInstance, int round) {
+    protected Map<Integer, Set<ClientMessage>> getLearnedOnInstance(CurrentInstanceLearner currentInstance, int round) {
         currentInstance.getvMap().putIfAbsent(round, new HashMap<>());
         return currentInstance.getvMap().get(round);
     }

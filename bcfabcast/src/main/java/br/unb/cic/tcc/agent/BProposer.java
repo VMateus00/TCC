@@ -1,6 +1,8 @@
 package br.unb.cic.tcc.agent;
 
 import br.unb.cic.tcc.definitions.Constants;
+import br.unb.cic.tcc.definitions.CurrentInstanceProposer;
+import br.unb.cic.tcc.defintions.CurrentInstanceBProposer;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
@@ -26,42 +28,49 @@ public class BProposer extends Proposer implements BAgent {
     public BProposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
         keyPair = RsaUtil.generateKeyPair();
-        currentRound = 0;
     }
 
     @Override
-    public void propose(ClientMessage clientMessage) { // Copia do metodo da superClasse, exceto pela assinatura
-        ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_PROPOSE;
-        BProtocolMessage protocolMessage = createAssignedMessage(new ProtocolMessage(messageType,
-                currentRound, getAgentId(), clientMessage), null, keyPair) ;
+    public void propose(ClientMessage clientMessage) {
+        super.propose(clientMessage); // Copia do metodo da superClasse, exceto pela assinatura
+    }
 
-        QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
-        getQuorumSender().sendTo(idCFProposers(), quorumMessage);
+    @Override
+    protected ProtocolMessage getMessageToPropose(ClientMessage clientMessage) {
+        BProtocolMessage protocolMessage = createAssignedMessage(super.getMessageToPropose(clientMessage),
+                null, keyPair) ;
+        return protocolMessage;
+    }
 
-        System.out.println("Proposer (" + getAgentId() + ") enviou uma proposta para os CFProposers");
+    @Override
+    protected CurrentInstanceProposer defineTypeInstance(Integer instanciaExecucao) {
+        return new CurrentInstanceBProposer(instanciaExecucao);
     }
 
     @Override
     public void phase2A(ProtocolMessage protocolMessage) {
-        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
+//        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
+        CurrentInstanceProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
+
 
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A && isColisionFastProposer(protocolMessage.getAgentSend());
 
         if (verifyMsg((BProtocolMessage) protocolMessage)
-                && currentRound == protocolMessage.getRound()
-                && currentValue.get(currentRound) == null
+                && instanciaAtual.getRound().equals(protocolMessage.getRound())
+                && instanciaAtual.getProposedValueOnRound(protocolMessage.getRound())  == null
                 && (condicao1 || condicao2)) {
 
-            currentValue.put(currentRound, protocolMessage.getMessage());
+            instanciaAtual.getProposedValuesOnRound().put(instanciaAtual.getRound(), protocolMessage.getMessage());
 
-            ProposerClientMessage valResponseMsg = null;
+            ProposerClientMessage valResponseMsg;
             if (protocolMessage.getMessage() instanceof ClientMessage) {
                 valResponseMsg = new ProposerClientMessage(getAgentId(), (ClientMessage) protocolMessage.getMessage());
             } else if (protocolMessage.getMessage() instanceof ProposerClientMessage) {
                 valResponseMsg = (ProposerClientMessage) protocolMessage.getMessage();
             } else {
                 System.out.println("Erro");
+                return;
             }
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2A;
             BProtocolMessage responseMsg = createAssignedMessage(new ProtocolMessage(messageType, protocolMessage.getRound(),
@@ -69,10 +78,10 @@ public class BProposer extends Proposer implements BAgent {
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             if (protocolMessage.getMessage() != null) {
-                System.out.println("Proposer (" + getAgentId() + ") enviou msg to acceptors and cfProposers");
-                getQuorumSender().sendTo(idAcceptorsAndCFProposers(), quorumMessage);
+//                System.out.println("Proposer (" + getAgentId() + ") enviou msg to acceptors and cfProposers");
+                getQuorumSender().sendTo(idAcceptorsAndCFProposers(getAgentId()), quorumMessage);
             } else {
-                System.out.println("Proposer (" + getAgentId() + ") enviou msg to leaners");
+//                System.out.println("Proposer (" + getAgentId() + ") enviou msg to leaners");
                 getQuorumSender().sendTo(idLearners(), quorumMessage);
             }
         }
@@ -81,24 +90,25 @@ public class BProposer extends Proposer implements BAgent {
     @Override
     public void phase2Prepare(ProtocolMessage protocolMessage) {
         System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
+        CurrentInstanceBProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         if (verifyMsg((BProtocolMessage) protocolMessage)
-                && currentRound < protocolMessage.getRound()
-                && goodRoundValue(((BProtocolMessage) protocolMessage).getProofs(), protocolMessage.getRound())) {
-            currentRound = protocolMessage.getRound();
+                && instanciaAtual.getRound() < protocolMessage.getRound()
+                && goodRoundValue(((BProtocolMessage) protocolMessage).getProofs())) {
 
-            proofs.put(currentRound, ((BProtocolMessage) protocolMessage).getProofs());
+            instanciaAtual.setRound(protocolMessage.getRound());
+            instanciaAtual.getProofs().put(protocolMessage.getRound(), ((BProtocolMessage) protocolMessage).getProofs());
 
             Map<Constants, Object> msgVal = (Map<Constants, Object>) protocolMessage.getMessage();
             Map<Integer, Set<ClientMessage>> msgFromCoordinator = (Map<Integer, Set<ClientMessage>>) msgVal.get(Constants.V_VAL);
             if (msgFromCoordinator != null && msgFromCoordinator.get(getAgentId()) != null) {
-                currentValue.put(currentRound, msgFromCoordinator.get(getAgentId()));
+                instanciaAtual.saveProposedValueOnRound(protocolMessage.getRound(), msgFromCoordinator.get(getAgentId()));
             } else {
-                currentValue.put(currentRound, null);
+                instanciaAtual.saveProposedValueOnRound(protocolMessage.getRound(), null);
             }
         }
     }
 
-    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages, Integer round) {
+    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) {
         int kMax = protocolMessages.stream()
                 .map(p -> (Message1B) p.getMessage())
                 .mapToInt(Message1B::getRoundAceitouUltimaVez)
@@ -114,8 +124,7 @@ public class BProposer extends Proposer implements BAgent {
     }
 
     @Override
-    public void limpaDadosExecucao() {
-        super.limpaDadosExecucao();
-        proofs = new HashMap<>();
+    protected CurrentInstanceBProposer getInstanciaAtual(Integer instanciaExecucao) {
+        return (CurrentInstanceBProposer) super.getInstanciaAtual(instanciaExecucao);
     }
 }

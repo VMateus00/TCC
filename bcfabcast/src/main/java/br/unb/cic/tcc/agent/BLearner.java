@@ -1,20 +1,16 @@
 package br.unb.cic.tcc.agent;
 
+import br.unb.cic.tcc.definitions.CurrentInstanceLearner;
 import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
-import br.unb.cic.tcc.quorum.Quoruns;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 public class BLearner extends Learner implements BAgent {
-
-    private Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
 
     public BLearner(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
@@ -25,13 +21,8 @@ public class BLearner extends Learner implements BAgent {
         if(!verifyMsg((BProtocolMessage) protocolMessage)){
             return;
         }
-        Set<ProtocolMessage> protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
-
-        if (protocolMessagesFromAcceptors == null) {
-            messagesFromAcceptors.put(protocolMessage.getRound(), new ConcurrentSkipListSet<>());
-            protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
-        }
-
+        CurrentInstanceLearner currentInstance = getCurrentInstance(protocolMessage.getInstanciaExecucao());
+        Set<ProtocolMessage> protocolMessagesFromAcceptors = currentInstance.messagesFromAcceptorsOnRound(protocolMessage.getRound());
         protocolMessagesFromAcceptors.add(protocolMessage);
 
         if (protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
@@ -43,12 +34,11 @@ public class BLearner extends Learner implements BAgent {
                 message.forEach(q2bVals::put);
             });
 
-            Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedThisRound(protocolMessage.getRound());
+            Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedOnInstance(currentInstance, protocolMessage.getRound());
 
             q2bVals.forEach(learnedThisRound::put);
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
-            Quoruns.liberaAtualizacaoRound(getAgentId(), learnedThisRound);
         }
     }
 }

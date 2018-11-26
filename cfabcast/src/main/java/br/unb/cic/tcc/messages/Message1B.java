@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-public class Message1B implements Serializable {
+public class Message1B implements Serializable { // TODO revisar essa msg dps
 
     private Integer roundAceitouUltimaVez;
     private Integer idAcceptor;

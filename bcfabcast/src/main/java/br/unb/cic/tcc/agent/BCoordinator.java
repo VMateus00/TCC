@@ -69,7 +69,7 @@ public class BCoordinator extends Coordinator implements BAgent {
             int[] agentsToSendMsg;
             if (s.isEmpty()) {
                 getvMap().put(currentRound, new ConcurrentHashMap<>()); // deixa vazio nesse caso
-                agentsToSendMsg = idCFProposers();
+                agentsToSendMsg = idCFProposers(getAgentId());
             } else {
                 if (s.size() < QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
                     return; // Só pode executar se tiver tamanho minimo;
@@ -77,10 +77,10 @@ public class BCoordinator extends Coordinator implements BAgent {
                 s.forEach((map) ->
                         map.forEach((k, v) -> getMapFromRound(currentRound).put(k, v)));
 
-                for (Integer idCFProposer : idCFProposers()) {
+                for (Integer idCFProposer : idCFProposers(getAgentId())) {
                     getMapFromRound(currentRound).putIfAbsent(idCFProposer, new ConcurrentSkipListSet<>());
                 }
-                agentsToSendMsg = idAcceptorsAndCFProposers();
+                agentsToSendMsg = idAcceptorsAndCFProposers(getAgentId());
             }
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2S;
             BProtocolMessage msgToSend = createAssignedMessage(new ProtocolMessage(messageType, currentRound, getAgentId(), getMapFromRound(currentRound)), protocolMessages, keyPair);
