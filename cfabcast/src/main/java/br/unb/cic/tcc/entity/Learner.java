@@ -60,10 +60,8 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         }
 
         if(protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH && !currentInstance.getEnviouResultado()){
+//        if (protocolMessagesFromAcceptors.size() >= Quoruns.getAcceptors().size()) { // utilizado para testes
             currentInstance.setEnviouResultado(Boolean.TRUE);
-//        }
-//
-//        if (protocolMessagesFromAcceptors.size() >= Quoruns.getAcceptors().size()) {
             // ACTIONS:
 
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()
@@ -82,24 +80,28 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
                 w.put((Integer) message.get(Constants.AGENT_ID), null);
             });
 
-            Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedThisRound(protocolMessage.getRound());
+            Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedOnInstance(currentInstance, protocolMessage.getRound());
 
             q2bVals.forEach(learnedThisRound::put);
             w.forEach(learnedThisRound::put);
 
             ProtocolMessage learnedMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_LEARNED, protocolMessage.getRound(),
-                    getAgentId(), protocolMessage.getInstanciaExecucao(), learnedThisRound);
+                    getAgentId(), protocolMessage.getInstanciaExecucao(), getMessagemAprendidaNaInstancia(learnedThisRound));
 
             learnedThisRound.forEach((k,v)->
                 teste = v.stream().map(ClientMessage::getIdClient).collect(Collectors.toList()).get(0));
 
-//            Integer[] protocol = getIdAgentes().get(Initializer.CLIENTS).stream().toArray(Integer[]::new);
             int[] clientId = {teste};
             getQuorumSender().sendTo(clientId,
                     new QuorumMessage(MessageType.QUORUM_REQUEST, learnedMsg, getAgentId()));
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu na instancia ("+currentInstance.getInstanciaAtual()+"): " + learnedThisRound);
         }
+    }
+
+    private Map<Integer, Set<ClientMessage>> getLearnedOnInstance(CurrentInstanceLearner currentInstance, int round) {
+        currentInstance.getvMap().putIfAbsent(round, new HashMap<>());
+        return currentInstance.getvMap().get(round);
     }
 
     protected CurrentInstanceLearner getCurrentInstance(Integer instanciaAtual){
@@ -117,9 +119,12 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         }
     }
 
-    protected Map<Integer, Set<ClientMessage>> getLearnedThisRound(Integer currentRound) {
-        getvMap().putIfAbsent(currentRound, new HashMap<>());
-        return getvMap().get(currentRound);
-    }
+    protected ClientMessage getMessagemAprendidaNaInstancia(Map<Integer, Set<ClientMessage>> learnedThisRound){
+        Set<ClientMessage> msgAprendida = new HashSet<>();
 
+        learnedThisRound.forEach((k,v)->
+            msgAprendida.addAll(v.stream().filter(p -> p != null).distinct().collect(Collectors.toSet())));
+
+        return msgAprendida.stream().collect(Collectors.toList()).get(0);
+    }
 }

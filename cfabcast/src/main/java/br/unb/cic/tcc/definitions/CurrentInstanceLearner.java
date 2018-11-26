@@ -1,8 +1,10 @@
 package br.unb.cic.tcc.definitions;
 
+import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,9 +12,12 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 public class CurrentInstanceLearner implements Serializable {
     private final Integer instanciaAtual;
+    private Boolean enviouResultado = false;
+
     protected Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
     protected Map<Integer, Set<ProtocolMessage>> messagesFromProposers = new ConcurrentHashMap<>();
-    private Boolean enviouResultado = false;
+    // VMAP<ROUND, MAP<PROPOSER_ID, MSG>>
+    private Map<Integer, Map<Integer, Set<ClientMessage>>> vMap = new HashMap<>();
 
     public CurrentInstanceLearner(Integer instanciaAtual) {
         this.instanciaAtual = instanciaAtual;
@@ -64,5 +69,9 @@ public class CurrentInstanceLearner implements Serializable {
 
     public void setEnviouResultado(Boolean enviouResultado) {
         this.enviouResultado = enviouResultado;
+    }
+
+    public Map<Integer, Map<Integer, Set<ClientMessage>>> getvMap() {
+        return vMap;
     }
 }

@@ -29,7 +29,7 @@ public class Client extends Agent<ClientReplica, QuorumSender> implements Runnab
 
     @Override
     public void run() {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             ClientMessage clientMessage = new ClientMessage("Instrução " + i, getAgentId());
             enviaMsgFromClientToProposer(clientMessage);
             System.out.println("Client ("+getAgentId()+") enviou msg com id:" + clientMessage.getIdMsg() + " às "+ new Date());
@@ -61,7 +61,7 @@ public class Client extends Agent<ClientReplica, QuorumSender> implements Runnab
     }
 
     public void mostraRecebeuMensagem(ProtocolMessage protocolMessage){
-        System.out.println("Client ("+getAgentId()+") recebeu que a mensagem: "+"idMessagem"+" foi recebida às " + new Date());
-        // TODO
+        ClientMessage msg = (ClientMessage) protocolMessage.getMessage();
+        System.out.println("Client ("+getAgentId()+") recebeu que a instrução: "+msg.getIdMsg()+" foi concluída e confirmada às " + new Date());
     }
 }
