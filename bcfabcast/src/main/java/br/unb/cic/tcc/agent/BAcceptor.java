@@ -36,7 +36,7 @@ public class BAcceptor extends Acceptor implements BAgent {
                 && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
             instanciaAtual.setRound(protocolMessage.getRound());
 
-            Message1B message1B = new Message1B(instanciaAtual.getRound(), getAgentId(), instanciaAtual.getVmapLastRound());
+            Message1B message1B = new Message1B(instanciaAtual.getRoundAceitouUltimaVez(), getAgentId(), instanciaAtual.getVmapLastRound());
 
             ProtocolMessage message = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, instanciaAtual.getRound(), getAgentId(), instanciaAtual.getInstanciaAtual(), message1B);
             BProtocolMessage protocolMessageToSend = createAssignedMessage(message, null, keyPair);

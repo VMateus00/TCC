@@ -3,6 +3,7 @@ package br.unb.cic.tcc.agent;
 import br.unb.cic.tcc.component.IUsig;
 import br.unb.cic.tcc.component.UsigComponent;
 import br.unb.cic.tcc.definitions.Constants;
+import br.unb.cic.tcc.defintions.CurrentInstanceBProposer;
 import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.Message1B;
@@ -13,13 +14,12 @@ import br.unb.cic.tcc.messages.UsigBProtocolMessage;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class UsigBProposer extends BProposer implements BAgent {
+public class UsigBProposer extends BProposer{
 
     private final IUsig usigComponent = new UsigComponent();
     private final Integer[] contadorRespostasAgentes;
@@ -37,7 +37,9 @@ public class UsigBProposer extends BProposer implements BAgent {
 
     @Override
     public void phase2A(ProtocolMessage protocolMessage) {
-        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
+        CurrentInstanceBProposer instanciaAtual =
+                getInstanciaAtual(protocolMessage.getInstanciaExecucao());
+//        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
 
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
         boolean condicao2 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
@@ -46,49 +48,50 @@ public class UsigBProposer extends BProposer implements BAgent {
                 && isColisionFastProposer(protocolMessage.getAgentSend());
 
         if (verifyMsg((BProtocolMessage) protocolMessage)
-                && currentRound == protocolMessage.getRound()
-                && currentValue.get(currentRound) == null
+                && instanciaAtual.getRound().equals(protocolMessage.getRound())
+                && instanciaAtual.getProposedValueOnRound(protocolMessage.getRound()) == null
                 && (condicao1 || condicao2)) {
 
-            currentValue.put(currentRound, protocolMessage.getMessage());
+            instanciaAtual.getProposedValuesOnRound().put(protocolMessage.getRound(), protocolMessage.getMessage());
 
-            ProposerClientMessage valResponseMsg = null;
+            ProposerClientMessage valResponseMsg;
             if (protocolMessage.getMessage() instanceof ClientMessage) {
                 valResponseMsg = new ProposerClientMessage(getAgentId(), (ClientMessage) protocolMessage.getMessage());
             } else if (protocolMessage.getMessage() instanceof ProposerClientMessage) {
                 valResponseMsg = (ProposerClientMessage) protocolMessage.getMessage();
             } else {
                 System.out.println("Erro");
-//                throw new Exception("Nao pode entrar como ProposerClientMessage nesse ponto");
+                return;
             }
 
             ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2A;
             UsigBProtocolMessage responseMsg = usigComponent.createUI(createAssignedMessage(new ProtocolMessage(
-                    msgType, protocolMessage.getRound(), getAgentId(), valResponseMsg), null, keyPair));
+                    msgType, protocolMessage.getRound(), getAgentId(), instanciaAtual.getInstanciaAtual(), valResponseMsg), null, keyPair));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
-            getQuorumSender().sendTo(idAccetprosAndLearnersAndCFProposers(), quorumMessage);
+            getQuorumSender().sendTo(idAccetprosAndLearnersAndCFProposers(getAgentId()), quorumMessage);
         }
     }
 
     @Override
     public void phase2Prepare(ProtocolMessage protocolMessage) {
+        CurrentInstanceBProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage) protocolMessage;
-        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
+//        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
         if (verifyMsg(usigBProtocolMessage)
-                && currentRound < protocolMessage.getRound()
-                && goodRoundValue(usigBProtocolMessage.getProofs(), protocolMessage.getRound())
+                && instanciaAtual.getRound() < protocolMessage.getRound()
+                && goodRoundValue(usigBProtocolMessage.getProofs())
                 && usigComponent.verifyUI(usigBProtocolMessage)
                 && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)) {
 
-            currentRound = protocolMessage.getRound();
+            instanciaAtual.setRound(protocolMessage.getRound());
 
             Map<Constants, Object> msgVal = (Map<Constants, Object>) protocolMessage.getMessage();
             Map<Integer, Set<ClientMessage>> msgFromCoordinator = (Map<Integer, Set<ClientMessage>>) msgVal.get(Constants.V_VAL);
             if (msgFromCoordinator != null && msgFromCoordinator.get(getAgentId()) != null) {
-                currentValue.put(currentRound, msgFromCoordinator.get(getAgentId()));
+                instanciaAtual.saveProposedValueOnRound(protocolMessage.getRound(), msgFromCoordinator.get(getAgentId()));
             } else {
-                currentValue.put(currentRound, null);
+                instanciaAtual.saveProposedValueOnRound(protocolMessage.getRound(), null);
             }
         }
     }
@@ -101,7 +104,7 @@ public class UsigBProposer extends BProposer implements BAgent {
         return false;
     }
 
-    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages, Integer round) { // TODO REFAZER
+    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) { // TODO REFAZER
         int kMax = protocolMessages.stream()
                 .map(p -> (Message1B) p.getMessage())
                 .mapToInt(Message1B::getRoundAceitouUltimaVez)
@@ -114,11 +117,5 @@ public class UsigBProposer extends BProposer implements BAgent {
                 .collect(Collectors.toList());
 
         return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG;
-    }
-
-    @Override
-    public void limpaDadosExecucao() {
-        super.limpaDadosExecucao();
-        proofs = new HashMap<>();
     }
 }

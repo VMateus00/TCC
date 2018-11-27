@@ -3,6 +3,7 @@ package br.unb.cic.tcc.agent;
 import br.unb.cic.tcc.component.IUsig;
 import br.unb.cic.tcc.component.UsigComponent;
 import br.unb.cic.tcc.definitions.Constants;
+import br.unb.cic.tcc.definitions.CurrentInstanceLearner;
 import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
@@ -40,17 +41,10 @@ public class UsigBLearner extends Learner implements BAgent {
         if(!verifyMsg(usigBProtocolMessage)){
             return;
         }
-        Set<ProtocolMessage> protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
-        Set<ProtocolMessage> protocolMessagesFromProposers = messagesFromProposers.get(protocolMessage.getRound()); // só quem envia sao os CF
+        CurrentInstanceLearner currentInstance = getCurrentInstance(protocolMessage.getInstanciaExecucao());
 
-        if (protocolMessagesFromAcceptors == null) {
-            messagesFromAcceptors.put(protocolMessage.getRound(), new ConcurrentSkipListSet<>());
-            protocolMessagesFromAcceptors = messagesFromAcceptors.get(protocolMessage.getRound());
-        }
-        if (protocolMessagesFromProposers == null) {
-            messagesFromProposers.put(protocolMessage.getRound(), new ConcurrentSkipListSet<>());
-            protocolMessagesFromProposers = messagesFromProposers.get(protocolMessage.getRound());
-        }
+        Set<ProtocolMessage> protocolMessagesFromAcceptors = currentInstance.messagesFromAcceptorsOnRound(protocolMessage.getRound());
+        Set<ProtocolMessage> protocolMessagesFromProposers = currentInstance.messagesFromProposersOnRound(protocolMessage.getRound()); // só quem envia sao os CF
 
         if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 && usigComponent.verifyUI(usigBProtocolMessage)
@@ -62,7 +56,9 @@ public class UsigBLearner extends Learner implements BAgent {
             protocolMessagesFromAcceptors.add(protocolMessage);
         }
 
-        if (protocolMessagesFromAcceptors.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
+        if (protocolMessagesFromAcceptors.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG
+                && !currentInstance.getEnviouResultado()) {
+            currentInstance.setEnviouResultado(Boolean.TRUE);
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()
                     .filter(p -> ((ProposerClientMessage) p.getMessage()).getClientMessage() == null)
                     .collect(Collectors.toList());
@@ -79,13 +75,12 @@ public class UsigBLearner extends Learner implements BAgent {
                 w.put((Integer) message.get(Constants.AGENT_ID), null);
             });
 
-            Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedThisRound(protocolMessage.getRound());
+            Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedOnInstance(currentInstance, protocolMessage.getRound());
 
             q2bVals.forEach(learnedThisRound::put);
             w.forEach(learnedThisRound::put);
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
-//            Quoruns.liberaAtualizacaoRound(getAgentId(), learnedThisRound);
         }
     }
 

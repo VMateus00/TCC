@@ -100,7 +100,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         if(instanciaEncontrada.isPresent()){
             return instanciaEncontrada.get();
         } else {
-            CurrentInstanceProposer currentInstance = new CurrentInstanceProposer(instanciaExecucao);
+            CurrentInstanceProposer currentInstance = defineTypeInstance(instanciaExecucao);
             instancias.add(currentInstance);
             return currentInstance;
         }

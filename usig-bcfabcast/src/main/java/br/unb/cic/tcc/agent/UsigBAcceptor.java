@@ -2,7 +2,7 @@ package br.unb.cic.tcc.agent;
 
 import br.unb.cic.tcc.component.IUsig;
 import br.unb.cic.tcc.component.UsigComponent;
-import br.unb.cic.tcc.messages.BProtocolMessage;
+import br.unb.cic.tcc.definitions.CurrentInstanceAcceptor;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class UsigBAcceptor extends BAcceptor implements BAgent {
+public class UsigBAcceptor extends BAcceptor{
 
     private final IUsig usigComponenet = new UsigComponent(); // vetor com uma quantidade maior(vamos ignora a posicao zero)
     private final Integer[] contadorRespostasAgentes;
@@ -35,18 +35,19 @@ public class UsigBAcceptor extends BAcceptor implements BAgent {
 
     @Override
     public void phase1b(ProtocolMessage protocolMessage) {
+        CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage)protocolMessage;
         if(verifyMsg(usigBProtocolMessage)
-                && currentRound < protocolMessage.getRound()
+                && instanciaAtual.getRound() < protocolMessage.getRound()
                 && protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A
                 && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)){
-            currentRound = protocolMessage.getRound();
+            instanciaAtual.setRound(protocolMessage.getRound());
 
-            Message1B message1B = new Message1B(roundAceitouUltimaVez, getAgentId(), getVmapLastRound());
+            Message1B message1B = new Message1B(instanciaAtual.getRoundAceitouUltimaVez(), getAgentId(), instanciaAtual.getVmapLastRound());
 
             ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_1B;
             UsigBProtocolMessage protocolMessageToSend = usigComponenet.createUI(createAssignedMessage(new ProtocolMessage(messageType,
-                    currentRound, getAgentId(), message1B), null, keyPair));
+                    instanciaAtual.getRound(), getAgentId(), instanciaAtual.getInstanciaAtual(), message1B), null, keyPair));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idCoordinatorAndLearners(), quorumMessage);
         }
@@ -54,9 +55,10 @@ public class UsigBAcceptor extends BAcceptor implements BAgent {
 
     @Override
     public void phase2b(ProtocolMessage protocolMessage) {
+        CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage) protocolMessage;
         System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b");
-        Map<Integer, Set<ClientMessage>> vMapLastRound = getVmapLastRound();
+        Map<Integer, Set<ClientMessage>> vMapLastRound = instanciaAtual.getVmapLastRound();
 
         int round = usigBProtocolMessage.getRound();
 
@@ -70,7 +72,7 @@ public class UsigBAcceptor extends BAcceptor implements BAgent {
                 (goodRoundValue(usigBProtocolMessage.getProofs(), usigBProtocolMessage.getRound())
                         && usigComponenet.verifyUI(usigBProtocolMessage)
                         && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)
-                        && (usigBProtocolMessage.getMessage() != null && roundAceitouUltimaVez < round)));
+                        && (usigBProtocolMessage.getMessage() != null && instanciaAtual.getRoundAceitouUltimaVez() < round)));
 
         boolean condicao2 = usigBProtocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)
@@ -78,16 +80,16 @@ public class UsigBAcceptor extends BAcceptor implements BAgent {
                 && (clientMessage).getClientMessage() != null;
 
         if (verifyMsg(usigBProtocolMessage)
-                && currentRound <= round
+                && instanciaAtual.getRound() <= round
                 && (condicao1 || condicao2)) {
-            vMapLastRound = getVmapLastRound();
+            vMapLastRound = instanciaAtual.getVmapLastRound();
 
             Integer agentId = protocolMessage.getAgentSend();
             if (condicao1) {
                 ((HashMap<Integer, Set<ClientMessage>>)usigBProtocolMessage.getMessage())
-                        .forEach((k,v)->getVmapLastRound().put(k,v));
-            } else if (condicao2 && (roundAceitouUltimaVez < round || vMapLastRound.isEmpty())) {
-                vMapLastRound = getVmapLastRound();
+                        .forEach((k,v)->instanciaAtual.getVmapLastRound().put(k,v));
+            } else if (condicao2 && (instanciaAtual.getRoundAceitouUltimaVez()< round || vMapLastRound.isEmpty())) {
+                vMapLastRound = instanciaAtual.getVmapLastRound();
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
 
                 for (Integer proposerId : idNCFProposers()) {
@@ -103,12 +105,12 @@ public class UsigBAcceptor extends BAcceptor implements BAgent {
                 vMapLastRound.putIfAbsent(agentId, new HashSet<>());
                 vMapLastRound.get(agentId).add(clientMessage.getClientMessage());
             }
-            roundAceitouUltimaVez = round;
-            currentRound = round;
+            instanciaAtual.setRoundAceitouUltimaVez(round);
+            instanciaAtual.setRound(round);
 
             ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2B;
             UsigBProtocolMessage protocolSendMsg = usigComponenet.createUI(createAssignedMessage(new ProtocolMessage(
-                    msgType, round, getAgentId(), vMapLastRound), null, keyPair));
+                    msgType, round, getAgentId(), instanciaAtual.getInstanciaAtual(), vMapLastRound), null, keyPair));
 
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idLearners(), quorumMessage);

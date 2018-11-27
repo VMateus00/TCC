@@ -25,7 +25,9 @@ public class BLearner extends Learner implements BAgent {
         Set<ProtocolMessage> protocolMessagesFromAcceptors = currentInstance.messagesFromAcceptorsOnRound(protocolMessage.getRound());
         protocolMessagesFromAcceptors.add(protocolMessage);
 
-        if (protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
+        if (protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO
+                && !currentInstance.getEnviouResultado()) {
+            currentInstance.setEnviouResultado(Boolean.TRUE);
             // ACTIONS:
 
             Map<Integer, Set<ClientMessage>> q2bVals = new HashMap<>();
