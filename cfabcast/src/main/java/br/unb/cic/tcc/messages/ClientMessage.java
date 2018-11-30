@@ -1,6 +1,7 @@
 package br.unb.cic.tcc.messages;
 
 import java.io.Serializable;
+import java.util.concurrent.Semaphore;
 
 public class ClientMessage implements Serializable, Comparable {
 
@@ -10,12 +11,20 @@ public class ClientMessage implements Serializable, Comparable {
 
     private static Integer contadorId = 0;
 
+    private static Semaphore semaphore = new Semaphore(1);
+
     public ClientMessage(String instructionToExecute, Integer idClient) {
         this.instructionToExecute = instructionToExecute;
         this.idClient = idClient;
 
-        ClientMessage.contadorId++;
-        idMsg = ClientMessage.contadorId;
+        try {
+            semaphore.acquire();
+            ClientMessage.contadorId++;
+            idMsg = ClientMessage.contadorId;
+            semaphore.release();
+        } catch (InterruptedException e) {
+           throw new RuntimeException("Ocorreu erro ao criar a msg");
+        }
     }
 
     public String getInstructionToExecute() {

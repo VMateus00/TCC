@@ -5,10 +5,14 @@ import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
+import br.unb.cic.tcc.messages.ProtocolMessageType;
+import quorum.communication.MessageType;
+import quorum.communication.QuorumMessage;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BLearner extends Learner implements BAgent {
 
@@ -37,10 +41,18 @@ public class BLearner extends Learner implements BAgent {
             });
 
             Map<Integer, Set<ClientMessage>> learnedThisRound = getLearnedOnInstance(currentInstance, protocolMessage.getRound());
-
             q2bVals.forEach(learnedThisRound::put);
 
-            System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
+            ProtocolMessage learnedMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_LEARNED, protocolMessage.getRound(),
+                    getAgentId(), protocolMessage.getInstanciaExecucao(), getMessagemAprendidaNaInstancia(learnedThisRound));
+
+            learnedThisRound.forEach((k,v)->
+                    currentInstance.setIdCliente(v.stream().map(ClientMessage::getIdClient).collect(Collectors.toList()).get(0)));
+
+            int[] clientId = {currentInstance.getIdCliente()};
+            getQuorumSender().sendTo(clientId, new QuorumMessage(MessageType.QUORUM_REQUEST, learnedMsg, getAgentId()));
+
+//            System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
         }
     }
 }

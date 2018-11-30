@@ -5,6 +5,7 @@ import br.unb.cic.tcc.messages.ProtocolMessage;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class CurrentInstanceLearner implements Serializable {
     private final Integer instanciaAtual;
     private Boolean enviouResultado = false;
+    private Integer idCliente = 0;
 
     protected Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
     protected Map<Integer, Set<ProtocolMessage>> messagesFromProposers = new ConcurrentHashMap<>();
@@ -44,11 +46,21 @@ public class CurrentInstanceLearner implements Serializable {
     }
 
     public Set<ProtocolMessage> messagesFromAcceptorsOnRound(Integer round){
-        return messagesFromAcceptors.get(round);
+        Set<ProtocolMessage> protocolMessages = messagesFromAcceptors.get(round);
+        if(protocolMessages == null){
+            protocolMessages = new HashSet<>();
+            messagesFromAcceptors.put(round, protocolMessages);
+        }
+        return protocolMessages;
     }
 
     public Set<ProtocolMessage> messagesFromProposersOnRound(Integer round){
-        return messagesFromProposers.get(round);
+        Set<ProtocolMessage> protocolMessages = messagesFromProposers.get(round);
+        if(protocolMessages == null){
+            protocolMessages = new HashSet<>();
+            messagesFromProposers.put(round, protocolMessages);
+        }
+        return protocolMessages;
     }
 
     public void setMessagesFromAcceptors(Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors) {
@@ -73,5 +85,13 @@ public class CurrentInstanceLearner implements Serializable {
 
     public Map<Integer, Map<Integer, Set<ClientMessage>>> getvMap() {
         return vMap;
+    }
+
+    public Integer getIdCliente() {
+        return idCliente;
+    }
+
+    public void setIdCliente(Integer idCliente) {
+        this.idCliente = idCliente;
     }
 }

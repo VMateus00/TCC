@@ -15,15 +15,14 @@ import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
 import java.security.KeyPair;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 public class BProposer extends Proposer implements BAgent {
     protected final KeyPair keyPair;
-    protected Map<Integer, Set<ProtocolMessage>> proofs = new HashMap<>();
 
     public BProposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         super(id, host, port, agentsMap);
@@ -37,14 +36,75 @@ public class BProposer extends Proposer implements BAgent {
 
     @Override
     protected ProtocolMessage getMessageToPropose(ClientMessage clientMessage) {
-        BProtocolMessage protocolMessage = createAssignedMessage(super.getMessageToPropose(clientMessage),
-                null, keyPair) ;
+        ProtocolMessage messageToPropose = super.getMessageToPropose(clientMessage);
+        BProtocolMessage protocolMessage = createAssignedMessage(messageToPropose, null, keyPair) ;
         return protocolMessage;
     }
 
     @Override
     protected CurrentInstanceProposer defineTypeInstance(Integer instanciaExecucao) {
         return new CurrentInstanceBProposer(instanciaExecucao);
+    }
+
+    @Override
+    public void phase1A(ProtocolMessage protocolMessage) {
+        super.phase1A(protocolMessage);
+    }
+
+    @Override
+    protected ProtocolMessage msgFromPhase1A(CurrentInstanceProposer currentInstance) {
+        ProtocolMessage protocolMessage = super.msgFromPhase1A(currentInstance);
+        return createAssignedMessage(protocolMessage, null, keyPair);
+    }
+
+    @Override
+    public synchronized void phase2Start(ProtocolMessage protocolMessage) {
+//        System.out.println("Coordinator começou a fase 2 - Start");
+        CurrentInstanceBProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
+
+        Set<ProtocolMessage> protocolMessages = instanciaAtual.getMsgsRecebidasOnRound(protocolMessage.getRound());
+        protocolMessages.add(protocolMessage);
+
+        if (instanciaAtual.getRound().equals(protocolMessage.getRound())
+                && instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()).isEmpty()
+//                && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO
+                && protocolMessages.size() == 1
+                ) {
+
+            int kMax = protocolMessages.stream()
+                    .map(p -> (Message1B) p.getMessage())
+                    .mapToInt(Message1B::getRoundAceitouUltimaVez)
+                    .max().getAsInt();
+
+            List<Map<Integer, Set<ClientMessage>>> s = protocolMessages.stream()
+                    .map(p -> (Message1B) p.getMessage())
+                    .filter(p -> p.getRoundAceitouUltimaVez().equals(kMax))
+                    .map(Message1B::getvMapLastRound)
+                    .collect(Collectors.toList());
+
+            int[] agentsToSendMsg;
+            if (s.isEmpty()) {
+                instanciaAtual.getvMap().put(protocolMessage.getRound(), null);
+                agentsToSendMsg = idCFProposers(getAgentId());
+            } else {
+//                if (s.size() < QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
+//                    return; // Só pode executar se tiver tamanho minimo;
+//                }
+                s.forEach((map) ->
+                        map.forEach((k, v) -> instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()).put(k, v)));
+
+                for (Integer idCFProposer : idCFProposers(getAgentId())) {
+                    instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()).putIfAbsent(idCFProposer, new ConcurrentSkipListSet<>());
+                }
+                agentsToSendMsg = idAcceptorsAndCFProposers(getAgentId());
+            }
+            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2S;
+            ProtocolMessage messageToSend = new ProtocolMessage(messageType, currentRound, getAgentId(), protocolMessage.getInstanciaExecucao(), instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()));
+            BProtocolMessage msgToSend = createAssignedMessage(messageToSend, protocolMessages, keyPair);
+
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(agentsToSendMsg, quorumMessage);
+        }
     }
 
     @Override
@@ -69,12 +129,13 @@ public class BProposer extends Proposer implements BAgent {
             } else if (protocolMessage.getMessage() instanceof ProposerClientMessage) {
                 valResponseMsg = (ProposerClientMessage) protocolMessage.getMessage();
             } else {
-                System.out.println("Erro");
+                System.out.println("O CF-proposer "+getAgentId()+" não conseguiu reconhecer a mensagem recebida. E portanto nao executou a phase2 corretamente.");
                 return;
             }
-            ProtocolMessageType messageType = ProtocolMessageType.MESSAGE_2A;
-            BProtocolMessage responseMsg = createAssignedMessage(new ProtocolMessage(messageType, protocolMessage.getRound(),
-                    getAgentId(), valResponseMsg), proofs.get(currentRound), keyPair);
+            ProtocolMessage message = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(),
+                    getAgentId(), protocolMessage.getInstanciaExecucao(), valResponseMsg);
+            Set<ProtocolMessage> proofsFromRound = ((CurrentInstanceBProposer) instanciaAtual).getProofsFromRound();
+            BProtocolMessage responseMsg = createAssignedMessage(message, proofsFromRound, keyPair);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
             if (protocolMessage.getMessage() != null) {
@@ -120,7 +181,8 @@ public class BProposer extends Proposer implements BAgent {
                 .map(Message1B::getvMapLastRound)
                 .collect(Collectors.toList());
 
-        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO;
+//        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO;
+        return s.size() >= 1;
     }
 
     @Override

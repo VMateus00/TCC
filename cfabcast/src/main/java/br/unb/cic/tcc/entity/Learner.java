@@ -22,8 +22,6 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
 
     protected HashSet<CurrentInstanceLearner> instancias = new HashSet<>();
 
-    private Integer teste = 0;
-
     public Learner(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender leanerSender = new AgentSender(id);
         LearnerReplica learnerReplica = defineLearnerReplica(id, host, port);
@@ -80,11 +78,10 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
                     getAgentId(), protocolMessage.getInstanciaExecucao(), getMessagemAprendidaNaInstancia(learnedThisRound));
 
             learnedThisRound.forEach((k,v)->
-                teste = v.stream().map(ClientMessage::getIdClient).collect(Collectors.toList()).get(0));
+                    currentInstance.setIdCliente(v.stream().map(ClientMessage::getIdClient).collect(Collectors.toList()).get(0)));
 
-            int[] clientId = {teste};
-            getQuorumSender().sendTo(clientId,
-                    new QuorumMessage(MessageType.QUORUM_REQUEST, learnedMsg, getAgentId()));
+            int[] clientId = {currentInstance.getIdCliente()};
+            getQuorumSender().sendTo(clientId, new QuorumMessage(MessageType.QUORUM_REQUEST, learnedMsg, getAgentId()));
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu na instancia ("+currentInstance.getInstanciaAtual()+"): " + learnedThisRound);
         }

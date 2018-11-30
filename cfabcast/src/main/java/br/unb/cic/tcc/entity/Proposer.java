@@ -55,11 +55,15 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         }
         if(enviaMsg){
             currentInstance.getvMap().put(currentInstance.getRound(), new HashMap<>());
-            ProtocolMessage msgToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, currentInstance.getRound(), getAgentId(),
-                    currentInstance.getInstanciaAtual(), null);
+            ProtocolMessage msgToSend = msgFromPhase1A(currentInstance);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idAcceptors(), quorumMessage);
         }
+    }
+
+    protected ProtocolMessage msgFromPhase1A(CurrentInstanceProposer currentInstance){
+        return new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, currentInstance.getRound(), getAgentId(),
+                currentInstance.getInstanciaAtual(), null);
     }
 
     public synchronized void phase2Start(ProtocolMessage protocolMessage) {

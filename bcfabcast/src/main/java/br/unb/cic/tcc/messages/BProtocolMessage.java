@@ -11,15 +11,15 @@ public class BProtocolMessage extends ProtocolMessage {
     private final PublicKey publicKey;
 
     public BProtocolMessage(ProtocolMessage protocolMessage,  byte[] assinaturaHash, Set<ProtocolMessage> proofs, PublicKey publicKey){
-        super(protocolMessage.getProtocolMessageType(), protocolMessage.getRound(), protocolMessage.getAgentSend(), protocolMessage.getMessage());
+        super(protocolMessage.getProtocolMessageType(), protocolMessage.getRound(), protocolMessage.getAgentSend(), protocolMessage.getInstanciaExecucao(), protocolMessage.getMessage());
         this.assinatura = assinaturaHash;
         this.publicKey = publicKey;
         this.proofs = proofs;
     }
 
-    public BProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend,
+    public BProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer currentInstance, Integer agentSend,
                             Object message, Set<ProtocolMessage> proofs, byte[] assinatura, PublicKey publicKey) {
-        super(protocolMessageType, round, agentSend, message);
+        super(protocolMessageType, round, agentSend, currentInstance, message);
         this.proofs = proofs;
         this.assinatura = assinatura;
         this.publicKey = publicKey;

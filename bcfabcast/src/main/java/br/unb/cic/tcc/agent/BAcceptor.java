@@ -49,7 +49,7 @@ public class BAcceptor extends Acceptor implements BAgent {
     public void phase2b(ProtocolMessage protocolMessage) {
         CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
 
-        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b");
+//        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b");
         Map<Integer, Set<ClientMessage>> vMapLastRound = instanciaAtual.getVmapLastRound();
 
         int round = protocolMessage.getRound();
@@ -106,6 +106,10 @@ public class BAcceptor extends Acceptor implements BAgent {
     }
 
     private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) {
+        if(protocolMessages.isEmpty()){ // TODO verificar quando nao ocorreu a fase de configuração
+            return true;
+        }
+
         int kMax = protocolMessages.stream()
                 .map(p -> (Message1B) p.getMessage())
                 .mapToInt(Message1B::getRoundAceitouUltimaVez)

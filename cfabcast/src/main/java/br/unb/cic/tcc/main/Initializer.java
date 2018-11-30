@@ -32,7 +32,7 @@ public abstract class Initializer{
     }
 
     private void initializeProtocol() {
-//        verificaTamanhoQuorumAcceptors();
+        verificaTamanhoQuorumAcceptors();
         Proposer coordinator = Quoruns.getCoordinators().get(0);
         coordinator.phase1A(null);
     }

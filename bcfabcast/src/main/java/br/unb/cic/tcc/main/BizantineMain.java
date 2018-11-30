@@ -1,20 +1,7 @@
 package br.unb.cic.tcc.main;
 
-import br.unb.cic.tcc.agent.BAcceptor;
-import br.unb.cic.tcc.agent.BCoordinator;
-import br.unb.cic.tcc.agent.BLearner;
-import br.unb.cic.tcc.agent.BProposer;
 import br.unb.cic.tcc.client.Client;
 import br.unb.cic.tcc.quorum.Quoruns;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
-
-import static br.unb.cic.tcc.main.Initializer.ACCEPTORS;
-import static br.unb.cic.tcc.main.Initializer.COORDINATOR;
-import static br.unb.cic.tcc.main.Initializer.LEANERS;
-import static br.unb.cic.tcc.main.Initializer.PROPOSERS;
 
 public class BizantineMain {
     public static void main(String[] args) throws InterruptedException {
@@ -39,9 +26,6 @@ public class BizantineMain {
 //        switch (agentType){
 //            case PROPOSERS:
 //                new BProposer(id, host, port, agentsMap);
-//                break;
-//            case COORDINATOR:
-//                new BCoordinator(id, host, port, agentsMap);
 //                break;
 //            case ACCEPTORS:
 //                new BAcceptor(id, host, port, agentsMap);
