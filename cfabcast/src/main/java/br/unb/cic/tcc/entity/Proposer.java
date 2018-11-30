@@ -2,6 +2,7 @@ package br.unb.cic.tcc.entity;
 
 import br.unb.cic.tcc.definitions.CurrentInstanceProposer;
 import br.unb.cic.tcc.messages.ClientMessage;
+import br.unb.cic.tcc.messages.Message1B;
 import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
@@ -12,9 +13,11 @@ import quorum.communication.QuorumMessage;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
@@ -37,6 +40,69 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         isColisionFastProposer = isColisionFastProposer(id);
     }
 
+    public void phase1A(ProtocolMessage protocolMessage) {
+        CurrentInstanceProposer currentInstance;
+        boolean enviaMsg = false;
+        if(protocolMessage == null){
+             currentInstance = defineTypeInstance(++instanciaExecucao);
+             enviaMsg = true;
+        } else {
+            currentInstance = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
+            if (currentInstance.getRound() < protocolMessage.getRound()) {
+                currentInstance.setRound(protocolMessage.getRound());
+                enviaMsg = true;
+            }
+        }
+        if(enviaMsg){
+            currentInstance.getvMap().put(currentInstance.getRound(), new HashMap<>());
+            ProtocolMessage msgToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1A, currentInstance.getRound(), getAgentId(),
+                    currentInstance.getInstanciaAtual(), null);
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(idAcceptors(), quorumMessage);
+        }
+    }
+
+    public synchronized void phase2Start(ProtocolMessage protocolMessage) {
+        CurrentInstanceProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
+//        System.out.println("Coordinator começou a fase 2Start");
+
+        Set<ProtocolMessage> protocolMessages = instanciaAtual.getMsgsRecebidasOnRound(protocolMessage.getRound());
+        protocolMessages.add(protocolMessage);
+
+        if (instanciaAtual.getRound().equals(protocolMessage.getRound())
+                && instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()).isEmpty()
+                && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH) {
+
+            int max = protocolMessages.stream()
+                    .map(p -> (Message1B) p.getMessage())
+                    .mapToInt(Message1B::getRoundAceitouUltimaVez)
+                    .max().getAsInt();
+
+            List<Map<Integer, Set<ClientMessage>>> s = protocolMessages.stream()
+                    .map(p -> (Message1B) p.getMessage())
+                    .filter(p -> p.getRoundAceitouUltimaVez().equals(max))
+                    .map(Message1B::getvMapLastRound)
+                    .collect(Collectors.toList());
+
+            int[] agentsToSendMsg;
+            if (s.isEmpty()) {
+                getvMap().put(protocolMessage.getRound(), null); // deixa vazio nesse caso
+                agentsToSendMsg = idProposers();
+            } else {
+                s.forEach((map) ->
+                        map.forEach((k, v) -> instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()).put(k, v))); // TODO verificar caso onde isso entra de novo
+
+                for (int idProposer: idProposers()){
+                    instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()).putIfAbsent(idProposer, null);
+                }
+                agentsToSendMsg = idAcceptorsAndProposers();
+            }
+            ProtocolMessage msgToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2S, instanciaAtual.getRound(), getAgentId(), protocolMessage.getInstanciaExecucao(), instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()));
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(agentsToSendMsg, quorumMessage);
+        }
+    }
+
     public void phase2A(ProtocolMessage protocolMessage) {
 //        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
         CurrentInstanceProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
@@ -48,7 +114,6 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
                 && (condicao1 || condicao2)) {
 
             instanciaAtual.getProposedValuesOnRound().put(instanciaAtual.getRound(), protocolMessage.getMessage());
-//            currentValue.put(currentRound, protocolMessage.getMessage());
 
             ProposerClientMessage valResponseMsg;
             if (protocolMessage.getMessage() instanceof ClientMessage) {
@@ -120,7 +185,6 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     protected ProtocolMessage getMessageToPropose(ClientMessage clientMessage){
         CurrentInstanceProposer currentInstance = defineTypeInstance(++instanciaExecucao);
-//        CurrentInstanceProposer currentInstance = new CurrentInstanceProposer(++instanciaExecucao);
         instancias.add(currentInstance);
 
         return new ProtocolMessage(ProtocolMessageType.MESSAGE_PROPOSE,

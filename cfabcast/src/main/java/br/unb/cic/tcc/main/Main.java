@@ -1,25 +1,7 @@
 package br.unb.cic.tcc.main;
 
 import br.unb.cic.tcc.client.Client;
-import br.unb.cic.tcc.entity.Acceptor;
-import br.unb.cic.tcc.entity.Coordinator;
-import br.unb.cic.tcc.entity.Learner;
-import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.quorum.Quoruns;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
-
-import static br.unb.cic.tcc.main.Initializer.ACCEPTORS;
-import static br.unb.cic.tcc.main.Initializer.COORDINATOR;
-import static br.unb.cic.tcc.main.Initializer.LEANERS;
-import static br.unb.cic.tcc.main.Initializer.PROPOSERS;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
@@ -44,9 +26,6 @@ public class Main {
 //        switch (agentType){
 //            case PROPOSERS:
 //                new Proposer(id, host, port, agentsMap);
-//                break;
-//            case COORDINATOR:
-//                new Coordinator(id, host, port, agentsMap);
 //                break;
 //            case ACCEPTORS:
 //                new Acceptor(id, host, port, agentsMap);

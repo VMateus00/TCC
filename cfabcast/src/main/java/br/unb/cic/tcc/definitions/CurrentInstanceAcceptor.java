@@ -17,7 +17,7 @@ public class CurrentInstanceAcceptor implements Serializable {
 
     public CurrentInstanceAcceptor(Integer instanciaAtual) {
         this.instanciaAtual = instanciaAtual;
-        round = 1;
+        round = 0;
         roundAceitouUltimaVez = 0;
         vMap = new HashMap<>();
     }

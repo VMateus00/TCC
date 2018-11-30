@@ -29,7 +29,7 @@ public class Client extends Agent<ClientReplica, QuorumSender> implements Runnab
 
     @Override
     public void run() {
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10; i++) {
             ClientMessage clientMessage = new ClientMessage("Instrução " + i, getAgentId());
             enviaMsgFromClientToProposer(clientMessage);
             System.out.println("Client ("+getAgentId()+") enviou msg com id:" + clientMessage.getIdMsg() + " às "+ new Date());
@@ -43,8 +43,8 @@ public class Client extends Agent<ClientReplica, QuorumSender> implements Runnab
                 .sorted(Comparator.naturalOrder())
                 .toArray(Integer[]::new);
 
+        int cfProposer[];
         if(idProposers.length > 1){
-            int cfProposer[];
             if(clientMessage.getIdMsg()%2 == 0){
                 int[] temp = {idProposers[0]};
                 cfProposer = temp;
@@ -52,12 +52,12 @@ public class Client extends Agent<ClientReplica, QuorumSender> implements Runnab
                 int[] temp = {idProposers[1]};
                 cfProposer = temp;
             }
-            getQuorumSender().sendTo(cfProposer
-                    ,new QuorumMessage(MessageType.QUORUM_REQUEST, clientMessage, getAgentId()));
         } else {
             // send to 1
-            getQuorumSender().sendTo(new int[idProposers[0]], new QuorumMessage(MessageType.QUORUM_REQUEST, clientMessage, getAgentId()));
+            int[] temp = {idProposers[0]};
+            cfProposer = temp;
         }
+        getQuorumSender().sendTo(cfProposer, new QuorumMessage(MessageType.QUORUM_REQUEST, clientMessage, getAgentId()));
     }
 
     public void mostraRecebeuMensagem(ProtocolMessage protocolMessage){

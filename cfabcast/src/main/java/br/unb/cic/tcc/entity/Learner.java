@@ -2,14 +2,11 @@ package br.unb.cic.tcc.entity;
 
 import br.unb.cic.tcc.definitions.Constants;
 import br.unb.cic.tcc.definitions.CurrentInstanceLearner;
-import br.unb.cic.tcc.main.AgentMapUtil;
-import br.unb.cic.tcc.main.Initializer;
 import br.unb.cic.tcc.messages.ClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.quorum.AgentSender;
 import br.unb.cic.tcc.quorum.LearnerReplica;
-import br.unb.cic.tcc.quorum.Quoruns;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
@@ -19,14 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 public class Learner extends Agent<LearnerReplica, AgentSender> {
-
-    protected Map<Integer, Set<ProtocolMessage>> messagesFromAcceptors = new ConcurrentHashMap<>();
-    protected Map<Integer, Set<ProtocolMessage>> messagesFromProposers = new ConcurrentHashMap<>();
 
     protected HashSet<CurrentInstanceLearner> instancias = new HashSet<>();
 
@@ -60,7 +52,6 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         }
 
         if(protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH && !currentInstance.getEnviouResultado()){
-//        if (protocolMessagesFromAcceptors.size() >= Quoruns.getAcceptors().size()) { // utilizado para testes
             currentInstance.setEnviouResultado(Boolean.TRUE);
             // ACTIONS:
 

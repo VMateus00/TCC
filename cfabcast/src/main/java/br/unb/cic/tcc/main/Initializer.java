@@ -2,7 +2,6 @@ package br.unb.cic.tcc.main;
 
 import br.unb.cic.tcc.client.Client;
 import br.unb.cic.tcc.entity.Acceptor;
-import br.unb.cic.tcc.entity.Coordinator;
 import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.quorum.Quoruns;
@@ -17,11 +16,9 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 public abstract class Initializer{
-    public static final String COORDINATOR = "#Coordinator";
     public static final String PROPOSERS = "#Proposers";
     public static final String LEANERS = "#Leaners";
     public static final String ACCEPTORS = "#Acceptors";
-    public static final String PROTOCOL = "#Protocol";
     public static final String CLIENTS = "#Clients";
 
     private static boolean isAlreadyExecuted = false;
@@ -30,14 +27,14 @@ public abstract class Initializer{
 
     public void initializeQuoruns(){
         createQuorunsReadingFile();
-//        initializeProtocol();
+        initializeProtocol();
         System.out.println();
     }
 
     private void initializeProtocol() {
-        verificaTamanhoQuorumAcceptors();
-        Coordinator coordinator = Quoruns.getCoordinators().get(0);
-        coordinator.phase1A();
+//        verificaTamanhoQuorumAcceptors();
+        Proposer coordinator = Quoruns.getCoordinators().get(0);
+        coordinator.phase1A(null);
     }
 
     protected void verificaTamanhoQuorumAcceptors() {
@@ -60,9 +57,7 @@ public abstract class Initializer{
                 String actualLine = bufferedReader.readLine();
 
                 while (actualLine != null){
-                    if(actualLine.contains(COORDINATOR)){
-                        actualLine = insertOnQuorum(bufferedReader, COORDINATOR, agentsMap);
-                    }else if(actualLine.contains(PROPOSERS)){
+                    if(actualLine.contains(PROPOSERS)){
                         actualLine = insertOnQuorum(bufferedReader, PROPOSERS, agentsMap);
                     } else if(actualLine.contains(LEANERS)){
                         actualLine = insertOnQuorum(bufferedReader, LEANERS, agentsMap);
@@ -86,9 +81,7 @@ public abstract class Initializer{
         HashMap<String, Set<Integer>> agentsMap = new HashMap<>();
 
         while (actualLine != null){
-            if(actualLine.contains(COORDINATOR)){
-                actualLine = addAgentId(bufferedReader, agentsMap, COORDINATOR);
-            }else if(actualLine.contains(PROPOSERS)){
+            if(actualLine.contains(PROPOSERS)){
                 actualLine = addAgentId(bufferedReader, agentsMap, PROPOSERS);
             }else if(actualLine.contains(ACCEPTORS)){
                 actualLine = addAgentId(bufferedReader, agentsMap, ACCEPTORS);
@@ -123,9 +116,9 @@ public abstract class Initializer{
                 int port = Integer.valueOf(str.nextToken());
 
                 switch (quorumName){
-                    case COORDINATOR:
-                        createCoordinator(id, host, port, agentsMap);
-                        break;
+//                    case COORDINATOR:
+//                        createCoordinator(id, host, port, agentsMap);
+//                        break;
                     case PROPOSERS:
                         createProposer(id, host, port, agentsMap);
                         break;
@@ -151,9 +144,9 @@ public abstract class Initializer{
         Quoruns.getClients().add(new Client(id, host, port, agentsMap));
     }
 
-    private void createCoordinator(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
-        Quoruns.getCoordinators().add(coordinatorToAdd(id, host, port, agentsMap));
-    }
+//    private void createCoordinator(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
+//        Quoruns.getCoordinators().add(coordinatorToAdd(id, host, port, agentsMap));
+//    }
 
     private void createProposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
         Quoruns.getProposers().add(proposerToAdd(id, host, port, agentsMap));
@@ -166,8 +159,6 @@ public abstract class Initializer{
     private void createAcceptor(int id, String host, int port, Map<String, Set<Integer>> agentsMap){
         Quoruns.getAcceptors().add(acceptorToAdd(id, host, port, agentsMap));
     }
-
-    abstract Coordinator coordinatorToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap);
 
     abstract Proposer proposerToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap);
 

@@ -10,12 +10,12 @@ public class ProtocolMessage implements Serializable, Comparable {
     private Integer instanciaExecucao; //TODO pensar em um nome melhor
     private Object message;
 
-    public ProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, Object message) {
-        this.protocolMessageType = protocolMessageType;
-        this.round = round;
-        this.agentSend = agentSend;
-        this.message = message;
-    }
+//    public ProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, Object message) {
+//        this.protocolMessageType = protocolMessageType;
+//        this.round = round;
+//        this.agentSend = agentSend;
+//        this.message = message;
+//    }
 
     public ProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, Integer instanciaExecucao, Object message) {
         this.protocolMessageType = protocolMessageType;

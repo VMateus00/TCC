@@ -3,16 +3,17 @@ package br.unb.cic.tcc.quorum;
 import br.unb.cic.tcc.client.Client;
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.entity.Agent;
-import br.unb.cic.tcc.entity.Coordinator;
 import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.messages.ClientMessage;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,7 +32,7 @@ public class Quoruns {
     private static Integer roundAtual = 1;
 
     private static List<Proposer> proposers = new ArrayList<>();
-    private static List<Coordinator> coordinators = new ArrayList<>();
+    private static List<Proposer> coordinators = new ArrayList<>();
     private static List<Learner> learners = new ArrayList<>();
     private static List<Acceptor> acceptors = new ArrayList<>();
     private static List<Client> clients = new ArrayList<>();
@@ -67,8 +68,12 @@ public class Quoruns {
         return acceptors;
     }
 
-    public static List<Coordinator> getCoordinators() {
-        return coordinators;
+    public static List<Proposer> getCoordinators() {
+        Optional<Proposer> coordinator = getProposers().stream().filter(p -> p.isCoordinator()).findFirst();
+        if(coordinator.isPresent()){
+            return Collections.singletonList(coordinator.get());
+        }
+        return Collections.emptyList();
     }
 
     public static List<Client> getClients() {
@@ -96,7 +101,7 @@ public class Quoruns {
     }
 
     public static int[] idCoordinators(int currentRound) {
-        return coordinators.stream().mapToInt(Coordinator::getAgentId).toArray();
+        return getCoordinators().stream().mapToInt(Proposer::getAgentId).toArray();
     }
 
     public static int[] idCFProposers(int round) {

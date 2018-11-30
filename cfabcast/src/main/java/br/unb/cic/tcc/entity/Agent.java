@@ -93,7 +93,7 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
     }
 
     public int[] idCoordinator(){
-        return idAgentes.get(Initializer.COORDINATOR).stream().mapToInt(p->p).toArray();
+        return idAgentes.get(Initializer.PROPOSERS).stream().filter(p->p == 1).mapToInt(p->p).toArray();
     }
 
     public int[] idCoordinatorAndLearners(){

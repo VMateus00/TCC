@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import static br.unb.cic.tcc.main.Initializer.ACCEPTORS;
-import static br.unb.cic.tcc.main.Initializer.COORDINATOR;
 import static br.unb.cic.tcc.main.Initializer.LEANERS;
 import static br.unb.cic.tcc.main.Initializer.PROPOSERS;
 
@@ -23,9 +22,7 @@ public class AgentMapUtil {
         HashMap<String, Set<Integer>> agentsMap = new HashMap<>();
 
         while (actualLine != null){
-            if(actualLine.contains(COORDINATOR)){
-                actualLine = addAgentId(bufferedReader, agentsMap, COORDINATOR);
-            }else if(actualLine.contains(PROPOSERS)){
+            if(actualLine.contains(PROPOSERS)){
                 actualLine = addAgentId(bufferedReader, agentsMap, PROPOSERS);
             }else if(actualLine.contains(ACCEPTORS)){
                 actualLine = addAgentId(bufferedReader, agentsMap, ACCEPTORS);

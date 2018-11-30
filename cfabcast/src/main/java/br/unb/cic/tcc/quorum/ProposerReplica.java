@@ -18,7 +18,7 @@ public class ProposerReplica extends QuorumReplica {
 
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
-        if(quorumMessage.getMsg() instanceof ClientMessage){
+        if (quorumMessage.getMsg() instanceof ClientMessage) {
             proposer.propose((ClientMessage) quorumMessage.getMsg());
         } else {
             ProtocolMessage protocolMessage = (ProtocolMessage) quorumMessage.getMsg();
@@ -26,6 +26,9 @@ public class ProposerReplica extends QuorumReplica {
                 System.out.println("Colision fast proposer foi chamado");
                 proposer.phase2A(protocolMessage);
 
+            } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1B) {
+                System.out.println("Coordinator recebeu o 1B");
+                proposer.phase2Start(protocolMessage);
             } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S) {
                 System.out.println("Fase 2Prepare foi chamada");
                 proposer.phase2Prepare(protocolMessage);

@@ -1,7 +1,6 @@
 package br.unb.cic.tcc.main;
 
 import br.unb.cic.tcc.entity.Acceptor;
-import br.unb.cic.tcc.entity.Coordinator;
 import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.entity.Proposer;
 
@@ -21,11 +20,6 @@ public class CInitializer extends Initializer {
             singletonInstance = new CInitializer();
         }
         return singletonInstance;
-    }
-
-    @Override
-    Coordinator coordinatorToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
-        return new Coordinator(id, host, port, agentsMap);
     }
 
     Proposer proposerToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
