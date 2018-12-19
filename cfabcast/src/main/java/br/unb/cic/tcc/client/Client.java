@@ -25,14 +25,22 @@ public class Client extends Agent<ClientReplica, QuorumSender> implements Runnab
         idAgentes = agentsMap;
         setQuorumSender(leanerSender);
         setQuorumReplica(learnerReplica);
+
+        try {
+            Thread.sleep(5000);
+            this.run();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void run() {
-        for (int i = 0; i < 1; i++) {
+        System.out.println(idAgentes);
+        for (int i = 0; i < 2; i++) {
             ClientMessage clientMessage = new ClientMessage("Instrução " + i+1, getAgentId());
             enviaMsgFromClientToProposer(clientMessage);
-            System.out.println("Client ("+getAgentId()+") enviou msg com id:" + clientMessage.getIdMsg() + " às "+ new Date());
+            System.out.println("Client ("+getAgentId()+") enviou msg com id:" + clientMessage.getIdMsg() + " as "+ new Date());
         }
     }
 
