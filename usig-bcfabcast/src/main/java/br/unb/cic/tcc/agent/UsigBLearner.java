@@ -13,6 +13,8 @@ import br.unb.cic.tcc.messages.UsigBProtocolMessage;
 import br.unb.cic.tcc.quorum.LearnerReplica;
 import br.unb.cic.tcc.quorum.Quoruns;
 import br.unb.cic.tcc.quorum.UsigLearnerReplica;
+import quorum.communication.MessageType;
+import quorum.communication.QuorumMessage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +40,9 @@ public class UsigBLearner extends Learner implements BAgent {
     @Override
     public synchronized void learn(ProtocolMessage protocolMessage) {
         UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage) protocolMessage;
-        if(!verifyMsg(usigBProtocolMessage)){
+        if(!verifyMsg(usigBProtocolMessage)
+                && usigComponent.verifyUI(usigBProtocolMessage)
+                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)){
             return;
         }
         CurrentInstanceLearner currentInstance = getCurrentInstance(protocolMessage.getInstanciaExecucao());
@@ -46,17 +50,16 @@ public class UsigBLearner extends Learner implements BAgent {
         Set<ProtocolMessage> protocolMessagesFromAcceptors = currentInstance.messagesFromAcceptorsOnRound(protocolMessage.getRound());
         Set<ProtocolMessage> protocolMessagesFromProposers = currentInstance.messagesFromProposersOnRound(protocolMessage.getRound()); // só quem envia sao os CF
 
-        if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
-                && usigComponent.verifyUI(usigBProtocolMessage)
-                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)) {
+        if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A) {
             protocolMessagesFromProposers.add(protocolMessage);
-        } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2B
-                && usigComponent.verifyUI(usigBProtocolMessage)
-                && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)) {
+            System.out.println("Learner recebeu uma msg dos proposers: ");
+        } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2B) {
             protocolMessagesFromAcceptors.add(protocolMessage);
+            System.out.println("Learner recebeu uma msg dos acceptors: ");
         }
 
-        if (protocolMessagesFromAcceptors.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG
+        if (protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG
+//        if (protocolMessagesFromAcceptors.size() >= 1
                 && !currentInstance.getEnviouResultado()) {
             currentInstance.setEnviouResultado(Boolean.TRUE);
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()
@@ -80,7 +83,18 @@ public class UsigBLearner extends Learner implements BAgent {
             q2bVals.forEach(learnedThisRound::put);
             w.forEach(learnedThisRound::put);
 
-            System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
+//            System.out.println("Learner (" + getAgentId() + ") - aprendeu no round ("+protocolMessage.getRound()+"): " + learnedThisRound);
+
+            ProtocolMessage learnedMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_LEARNED, protocolMessage.getRound(),
+                    getAgentId(), protocolMessage.getInstanciaExecucao(), getMessagemAprendidaNaInstancia(learnedThisRound));
+
+            learnedThisRound.forEach((k,v)->
+                    currentInstance.setIdCliente(v.stream().map(ClientMessage::getIdClient).collect(Collectors.toList()).get(0)));
+
+            int[] clientId = {currentInstance.getIdCliente()};
+            getQuorumSender().sendTo(clientId, new QuorumMessage(MessageType.QUORUM_REQUEST, learnedMsg, getAgentId()));
+
+            System.out.println("Learner (" + getAgentId() + ") - aprendeu na instancia ("+currentInstance.getInstanciaAtual()+"): " + learnedThisRound);
         }
     }
 

@@ -3,6 +3,7 @@ package br.unb.cic.tcc.agent;
 import br.unb.cic.tcc.component.IUsig;
 import br.unb.cic.tcc.component.UsigComponent;
 import br.unb.cic.tcc.definitions.Constants;
+import br.unb.cic.tcc.definitions.CurrentInstanceProposer;
 import br.unb.cic.tcc.defintions.CurrentInstanceBProposer;
 import br.unb.cic.tcc.messages.BProtocolMessage;
 import br.unb.cic.tcc.messages.ClientMessage;
@@ -17,6 +18,7 @@ import quorum.communication.QuorumMessage;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 public class UsigBProposer extends BProposer{
@@ -34,6 +36,67 @@ public class UsigBProposer extends BProposer{
         }
     }
 
+    @Override
+    public void phase1A(ProtocolMessage protocolMessage) {
+        super.phase1A(protocolMessage); // igual acima, somente a msg é assinada
+    }
+
+    @Override
+    protected void sendMsgFromPhase1AToQuorum(QuorumMessage quorumMessage) {
+        getQuorumSender().sendTo(idAcceptorsAndLearnersAndCFProposers(getAgentId()), quorumMessage);
+    }
+
+    @Override
+    protected ProtocolMessage msgFromPhase1A(CurrentInstanceProposer currentInstance) {
+        ProtocolMessage protocolMessage = super.msgFromPhase1A(currentInstance);
+        return usigComponent.createUI((BProtocolMessage) protocolMessage);
+    }
+
+    @Override
+    public synchronized void phase2Start(ProtocolMessage protocolMessage) {
+//        System.out.println("Coordinator começou a fase 2 - Start");
+        CurrentInstanceBProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
+
+        Set<ProtocolMessage> protocolMessages = instanciaAtual.getMsgsRecebidasOnRound(protocolMessage.getRound());
+        protocolMessages.add(protocolMessage);
+
+        if (verifyMsg((BProtocolMessage) protocolMessage)
+                && currentRound == protocolMessage.getRound()
+                && getMapFromRound(currentRound).isEmpty()
+                && verifyCnt(((UsigBProtocolMessage) protocolMessage).getAssinaturaUsig(), (protocolMessage).getAgentSend()-1)
+                && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG) {
+
+            int kMax = protocolMessages.stream()
+                    .map(p -> (Message1B) p.getMessage())
+                    .mapToInt(Message1B::getRoundAceitouUltimaVez)
+                    .max().getAsInt();
+
+            List<Map<Integer, Set<ClientMessage>>> s = protocolMessages.stream()
+                    .map(p -> (Message1B) p.getMessage())
+                    .filter(p -> p.getRoundAceitouUltimaVez().equals(kMax))
+                    .map(Message1B::getvMapLastRound)
+                    .collect(Collectors.toList());
+
+            if (s.isEmpty()) {
+                instanciaAtual.getvMap().put(protocolMessage.getRound(), null);
+//                getvMap().put(currentRound, new ConcurrentHashMap<>()); // deixa vazio nesse caso
+            } else {
+                s.forEach((map) ->
+                        map.forEach((k, v) -> getMapFromRound(currentRound).put(k, v)));
+
+                for(Integer idCFProposer : idCFProposers(getAgentId())){
+                    getMapFromRound(currentRound).putIfAbsent(idCFProposer, new ConcurrentSkipListSet<>());
+                }
+            }
+
+            ProtocolMessage messageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2S, currentRound,
+                    getAgentId(), instanciaAtual.getInstanciaAtual(), instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()));
+            UsigBProtocolMessage msgToSend = usigComponent.createUI(createAssignedMessage(messageToSend, protocolMessages, keyPair));
+
+            QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
+            getQuorumSender().sendTo(idAcceptorsAndCFProposers(getAgentId()), quorumMessage);
+        }
+    }
 
     @Override
     public void phase2A(ProtocolMessage protocolMessage) {
@@ -64,12 +127,12 @@ public class UsigBProposer extends BProposer{
                 return;
             }
 
-            ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2A;
-            UsigBProtocolMessage responseMsg = usigComponent.createUI(createAssignedMessage(new ProtocolMessage(
-                    msgType, protocolMessage.getRound(), getAgentId(), instanciaAtual.getInstanciaAtual(), valResponseMsg), null, keyPair));
+            ProtocolMessage messageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2A, protocolMessage.getRound(),
+                    getAgentId(), instanciaAtual.getInstanciaAtual(), valResponseMsg);
+            UsigBProtocolMessage responseMsg = usigComponent.createUI(createAssignedMessage(messageToSend, null, keyPair));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, responseMsg, getQuorumSender().getProcessId());
 
-            getQuorumSender().sendTo(idAccetprosAndLearnersAndCFProposers(getAgentId()), quorumMessage);
+            getQuorumSender().sendTo(idAcceptorsAndLearnersAndCFProposers(getAgentId()), quorumMessage);
         }
     }
 
@@ -104,18 +167,8 @@ public class UsigBProposer extends BProposer{
         return false;
     }
 
-    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) { // TODO REFAZER
-        int kMax = protocolMessages.stream()
-                .map(p -> (Message1B) p.getMessage())
-                .mapToInt(Message1B::getRoundAceitouUltimaVez)
-                .max().getAsInt();
-
-        List<Map<Integer, Set<ClientMessage>>> s = protocolMessages.stream()
-                .map(p -> (Message1B) p.getMessage())
-                .filter(p -> p.getRoundAceitouUltimaVez().equals(kMax))
-                .map(Message1B::getvMapLastRound)
-                .collect(Collectors.toList());
-
-        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG;
+    @Override
+    protected Integer qtdMsgMinima() {
+        return QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG;
     }
 }

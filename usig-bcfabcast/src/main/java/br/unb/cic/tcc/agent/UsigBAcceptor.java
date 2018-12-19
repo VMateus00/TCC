@@ -9,6 +9,8 @@ import br.unb.cic.tcc.messages.ProposerClientMessage;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
 import br.unb.cic.tcc.messages.UsigBProtocolMessage;
+import br.unb.cic.tcc.quorum.AcceptorReplica;
+import br.unb.cic.tcc.quorum.UsigAcceptorReplica;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
@@ -57,7 +59,7 @@ public class UsigBAcceptor extends BAcceptor{
     public void phase2b(ProtocolMessage protocolMessage) {
         CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         UsigBProtocolMessage usigBProtocolMessage = (UsigBProtocolMessage) protocolMessage;
-        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b");
+//        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b");
         Map<Integer, Set<ClientMessage>> vMapLastRound = instanciaAtual.getVmapLastRound();
 
         int round = usigBProtocolMessage.getRound();
@@ -69,7 +71,7 @@ public class UsigBAcceptor extends BAcceptor{
 
         boolean condicao1 = usigBProtocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S &&
                 (vMapLastRound.isEmpty() ||
-                (goodRoundValue(usigBProtocolMessage.getProofs(), usigBProtocolMessage.getRound())
+                (goodRoundValue(usigBProtocolMessage.getProofs())
                         && usigComponenet.verifyUI(usigBProtocolMessage)
                         && verifyCnt(usigBProtocolMessage.getAssinaturaUsig(), usigBProtocolMessage.getAgentSend()-1)
                         && (usigBProtocolMessage.getMessage() != null && instanciaAtual.getRoundAceitouUltimaVez() < round)));
@@ -108,12 +110,13 @@ public class UsigBAcceptor extends BAcceptor{
             instanciaAtual.setRoundAceitouUltimaVez(round);
             instanciaAtual.setRound(round);
 
-            ProtocolMessageType msgType = ProtocolMessageType.MESSAGE_2B;
-            UsigBProtocolMessage protocolSendMsg = usigComponenet.createUI(createAssignedMessage(new ProtocolMessage(
-                    msgType, round, getAgentId(), instanciaAtual.getInstanciaAtual(), vMapLastRound), null, keyPair));
+            ProtocolMessage msgToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), instanciaAtual.getInstanciaAtual(), vMapLastRound);
+            UsigBProtocolMessage protocolSendMsg = usigComponenet.createUI(createAssignedMessage(msgToSend, null, keyPair));
 
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idLearners(), quorumMessage);
+        } else {
+            System.out.println("nao pode executar fase 2b - acceptor");
         }
     }
 
@@ -125,18 +128,18 @@ public class UsigBAcceptor extends BAcceptor{
         return false;
     }
 
-    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages, Integer round) {
-        int kMax = protocolMessages.stream()
-                .map(p -> (Message1B) p.getMessage())
-                .mapToInt(Message1B::getRoundAceitouUltimaVez)
-                .max().getAsInt();
+    @Override
+    protected Integer qtdMinimaRespostas() {
+        return QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG;
+//        return 1;
+    }
 
-        List<Map<Integer, Set<ClientMessage>>> s = protocolMessages.stream()
-                .map(p -> (Message1B) p.getMessage())
-                .filter(p -> p.getRoundAceitouUltimaVez().equals(kMax))
-                .map(Message1B::getvMapLastRound)
-                .collect(Collectors.toList());
+    public void updateCnt(UsigBProtocolMessage protocolMessage){
+        verifyCnt(protocolMessage.getAssinaturaUsig(), protocolMessage.getAgentSend()-1);
+    }
 
-        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG;
+    @Override
+    protected AcceptorReplica defineAcceptorReplica(int id, String host, int port) {
+        return new UsigAcceptorReplica(id, host, port, this);
     }
 }

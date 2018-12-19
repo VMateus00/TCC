@@ -67,9 +67,7 @@ public class BProposer extends Proposer implements BAgent {
 
         if (instanciaAtual.getRound().equals(protocolMessage.getRound())
                 && instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()).isEmpty()
-//                && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO
-                && protocolMessages.size() == 1
-                ) {
+                && protocolMessages.size() == QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
 
             int kMax = protocolMessages.stream()
                     .map(p -> (Message1B) p.getMessage())
@@ -87,9 +85,9 @@ public class BProposer extends Proposer implements BAgent {
                 instanciaAtual.getvMap().put(protocolMessage.getRound(), null);
                 agentsToSendMsg = idCFProposers(getAgentId());
             } else {
-//                if (s.size() < QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
-//                    return; // Só pode executar se tiver tamanho minimo;
-//                }
+                if (s.size() < QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO) {
+                    return; // Só pode executar se tiver tamanho minimo;
+                }
                 s.forEach((map) ->
                         map.forEach((k, v) -> instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()).put(k, v)));
 
@@ -169,7 +167,7 @@ public class BProposer extends Proposer implements BAgent {
         }
     }
 
-    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) {
+    protected boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) {
         int kMax = protocolMessages.stream()
                 .map(p -> (Message1B) p.getMessage())
                 .mapToInt(Message1B::getRoundAceitouUltimaVez)
@@ -181,8 +179,12 @@ public class BProposer extends Proposer implements BAgent {
                 .map(Message1B::getvMapLastRound)
                 .collect(Collectors.toList());
 
-//        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO;
-        return s.size() >= 1;
+        return s.size() >= qtdMsgMinima();
+//        return s.size() >= 1;
+    }
+
+    protected Integer qtdMsgMinima() {
+        return QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO;
     }
 
     @Override

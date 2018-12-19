@@ -7,8 +7,9 @@ public class UsigBProtocolMessage extends BProtocolMessage {
 
     private final Integer assinaturaUsig;
 
-    public UsigBProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, byte[] assinatura, PublicKey publicKey, Object message, Set<ProtocolMessage> proofs, Integer assinaturaUsig) {
-        super(protocolMessageType, round, agentSend, message, proofs, assinatura, publicKey);
+    public UsigBProtocolMessage(ProtocolMessageType protocolMessageType, Integer round, Integer agentSend, Integer instanciaExecucao,
+                                byte[] assinatura, PublicKey publicKey, Object message, Set<ProtocolMessage> proofs, Integer assinaturaUsig) {
+        super(protocolMessageType, round, instanciaExecucao,  agentSend, message, proofs, assinatura, publicKey);
         this.assinaturaUsig = assinaturaUsig;
     }
 

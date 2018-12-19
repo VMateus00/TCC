@@ -30,7 +30,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     public Proposer(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender proposerSender = new AgentSender(id);
-        ProposerReplica proposerReplica = new ProposerReplica(id, host, port, this);
+        ProposerReplica proposerReplica = defineProposerReplica(id, host, port);
 
         setAgentId(id);
         idAgentes = agentsMap;
@@ -57,8 +57,12 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
             currentInstance.getvMap().put(currentInstance.getRound(), new HashMap<>());
             ProtocolMessage msgToSend = msgFromPhase1A(currentInstance);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
-            getQuorumSender().sendTo(idAcceptors(), quorumMessage);
+            sendMsgFromPhase1AToQuorum(quorumMessage);
         }
+    }
+
+    protected void sendMsgFromPhase1AToQuorum(QuorumMessage quorumMessage) {
+        getQuorumSender().sendTo(idAcceptors(), quorumMessage);
     }
 
     protected ProtocolMessage msgFromPhase1A(CurrentInstanceProposer currentInstance){
@@ -183,7 +187,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         if(isColisionFastProposer){
             phase2A(protocolMessage);
         }else{
-            getQuorumSender().sendTo(idCFProposers(getAgentId()), quorumMessage);
+            getQuorumSender().sendTo(idAcceptorsAndLearnersAndCFProposers(getAgentId()), quorumMessage);
         }
     }
 
@@ -203,4 +207,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         return getAgentId() == 1;
     }
 
+    protected ProposerReplica defineProposerReplica(int id, String host, int port) {
+        return new ProposerReplica(id, host, port, this);
+    }
 }

@@ -15,7 +15,7 @@ public class UsigComponent implements IUsig {
     @Override
     public UsigBProtocolMessage createUI(BProtocolMessage bProtocolMessage) {
         UsigBProtocolMessage usigBProtocolMessage = new UsigBProtocolMessage(bProtocolMessage.getProtocolMessageType(),
-                bProtocolMessage.getRound(), bProtocolMessage.getAgentSend(),
+                bProtocolMessage.getRound(), bProtocolMessage.getAgentSend(), bProtocolMessage.getInstanciaExecucao(),
                 bProtocolMessage.getAssinatura(), bProtocolMessage.getPublicKey(),
                 bProtocolMessage.getMessage(), bProtocolMessage.getProofs(), addNovoContador());
 

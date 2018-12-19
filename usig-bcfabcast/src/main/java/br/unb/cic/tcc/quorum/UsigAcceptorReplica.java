@@ -1,19 +1,15 @@
 package br.unb.cic.tcc.quorum;
 
+import br.unb.cic.tcc.agent.UsigBAcceptor;
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.messages.ProtocolMessage;
 import br.unb.cic.tcc.messages.ProtocolMessageType;
+import br.unb.cic.tcc.messages.UsigBProtocolMessage;
 import quorum.communication.QuorumMessage;
-import quorum.core.QuorumReplica;
 
-public class AcceptorReplica extends QuorumReplica {
-
-    private Acceptor acceptor;
-
-    public AcceptorReplica(int id, String host, int port, Acceptor acceptor) {
-        super(id, "", host, port);
-
-        this.acceptor = acceptor;
+public class UsigAcceptorReplica extends AcceptorReplica {
+    public UsigAcceptorReplica(int id, String host, int port, Acceptor acceptor) {
+        super(id, host, port, acceptor);
     }
 
     @Override
@@ -21,23 +17,18 @@ public class AcceptorReplica extends QuorumReplica {
         ProtocolMessage message = (ProtocolMessage) quorumMessage.getMsg();
 
         if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
-            acceptor.phase1b(message);
+            getAcceptor().phase1b(message);
 //            System.out.println("Acceptor: "+ acceptor.getAgentId() + "chamou a phase1b");
 
         } else if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
                 ||message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S){
-            acceptor.phase2b(message);
+            getAcceptor().phase2b(message);
 //            System.out.println("Acceptor: "+ acceptor.getAgentId() + "chamou a phase2b");
+        } else {
+            ((UsigBAcceptor)getAcceptor()).updateCnt((UsigBProtocolMessage) message);
         }
+
+
         return null;
-    }
-
-    @Override
-    public QuorumMessage executeReconfigurationMessage(QuorumMessage quorumMessage) {
-        throw new UnsupportedOperationException("Not utilized in this protocol");
-    }
-
-    public Acceptor getAcceptor() {
-        return acceptor;
     }
 }

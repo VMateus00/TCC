@@ -6,7 +6,6 @@ import br.unb.cic.tcc.agent.UsigBLearner;
 import br.unb.cic.tcc.agent.UsigBProposer;
 import br.unb.cic.tcc.entity.Acceptor;
 import br.unb.cic.tcc.entity.Agent;
-import br.unb.cic.tcc.entity.Coordinator;
 import br.unb.cic.tcc.entity.Learner;
 import br.unb.cic.tcc.entity.Proposer;
 import br.unb.cic.tcc.quorum.Quoruns;
@@ -36,10 +35,10 @@ public class UsigBInitializer extends Initializer {
         }
     }
 
-    @Override
-    Coordinator coordinatorToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
-        return new UsigBCoordinator(id, host, port, getQtdAgents(), agentsMap);
-    }
+//    @Override
+//    Coordinator coordinatorToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
+//        return new UsigBCoordinator(id, host, port, getQtdAgents(), agentsMap);
+//    }
 
     @Override
     protected Proposer proposerToAdd(int id, String host, int port, Map<String, Set<Integer>> agentsMap){

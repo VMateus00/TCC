@@ -105,7 +105,7 @@ public class BAcceptor extends Acceptor implements BAgent {
         }
     }
 
-    private boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) {
+    protected boolean goodRoundValue(Set<ProtocolMessage> protocolMessages) {
         if(protocolMessages.isEmpty()){ // TODO verificar quando nao ocorreu a fase de configuração
             return true;
         }
@@ -121,6 +121,10 @@ public class BAcceptor extends Acceptor implements BAgent {
                 .map(Message1B::getvMapLastRound)
                 .collect(Collectors.toList());
 
-        return s.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO;
+        return s.size() >= qtdMinimaRespostas();
+    }
+
+    protected Integer qtdMinimaRespostas() {
+        return QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_BIZANTINO;
     }
 }

@@ -22,12 +22,16 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
 
     public Acceptor(int id, String host, int port, Map<String, Set<Integer>> agentsMap) {
         AgentSender acceptorSender = new AgentSender(id);
-        AcceptorReplica acceptorReplica = new AcceptorReplica(id, host, port, this);
+        AcceptorReplica acceptorReplica = defineAcceptorReplica(id, host, port);
 
         setAgentId(id);
         idAgentes = agentsMap;
         setQuorumSender(acceptorSender);
         setQuorumReplica(acceptorReplica);
+    }
+
+    protected AcceptorReplica defineAcceptorReplica(int id, String host, int port) {
+        return new AcceptorReplica(id, host, port, this);
     }
 
     public void phase1b(ProtocolMessage protocolMessage) {

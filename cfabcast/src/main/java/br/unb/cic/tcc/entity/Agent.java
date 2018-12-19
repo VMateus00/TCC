@@ -123,7 +123,7 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
         return ArrayUtils.addAll(idAcceptors(), idCFProposers(currentProposer));
     }
 
-    public int[] idAccetprosAndLearnersAndCFProposers(int currentProposer){
+    public int[] idAcceptorsAndLearnersAndCFProposers(int currentProposer){
         return ArrayUtils.addAll(idLearners(), idAcceptorsAndCFProposers(currentProposer));
     }
 }

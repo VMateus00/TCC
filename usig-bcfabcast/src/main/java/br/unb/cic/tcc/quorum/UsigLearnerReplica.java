@@ -18,7 +18,9 @@ public class UsigLearnerReplica extends LearnerReplica {
         if (ProtocolMessageType.MESSAGE_2B == protocolMessage.getProtocolMessageType()
                 || ProtocolMessageType.MESSAGE_2A == protocolMessage.getProtocolMessageType()) {
             learner.learn(protocolMessage);
-        } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1B) {
+        } else if (protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1B
+                || protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A
+                || protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE) {
             ((UsigBLearner)learner).updateCnt((UsigBProtocolMessage) protocolMessage);
         }
 
