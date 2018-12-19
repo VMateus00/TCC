@@ -59,7 +59,6 @@ public class UsigBLearner extends Learner implements BAgent {
         }
 
         if (protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG
-//        if (protocolMessagesFromAcceptors.size() >= 1
                 && !currentInstance.getEnviouResultado()) {
             currentInstance.setEnviouResultado(Boolean.TRUE);
             List<ProtocolMessage> msgWithNilValue = protocolMessagesFromProposers.stream()

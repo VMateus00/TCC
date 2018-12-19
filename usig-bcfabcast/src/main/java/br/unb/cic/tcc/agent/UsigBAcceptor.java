@@ -131,7 +131,6 @@ public class UsigBAcceptor extends BAcceptor{
     @Override
     protected Integer qtdMinimaRespostas() {
         return QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_USIG;
-//        return 1;
     }
 
     public void updateCnt(UsigBProtocolMessage protocolMessage){

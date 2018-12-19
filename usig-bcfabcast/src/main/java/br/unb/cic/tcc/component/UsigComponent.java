@@ -24,10 +24,10 @@ public class UsigComponent implements IUsig {
     }
 
     @Override
-    public boolean verifyUI(UsigBProtocolMessage protocolMessage) { // TODO alinhar
-//        UsigBProtocolMessage usigBProtocolMessage = msgs.get(protocolMessage.getAssinaturaUsig());
-//        return usigBProtocolMessage != null && usigBProtocolMessage.equals(protocolMessage);
-        return true;
+    public boolean verifyUI(UsigBProtocolMessage protocolMessage) {
+        UsigBProtocolMessage usigBProtocolMessage = msgs.get(protocolMessage.getAssinaturaUsig());
+        msgs.put(protocolMessage.getAssinaturaUsig(), protocolMessage);
+        return usigBProtocolMessage == null && protocolMessage.equals(msgs.get(protocolMessage.getAssinaturaUsig()));
     }
 
     private int addNovoContador(){
