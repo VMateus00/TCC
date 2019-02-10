@@ -52,7 +52,7 @@ public class Quoruns {
             Proposer proposer = Quoruns.getProposers().get(positionProposerEscolhido);
 
             // inicia o protocolo
-            proposer.propose(clientMessage);
+//            proposer.propose(clientMessage);
         }
     }
 

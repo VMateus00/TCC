@@ -11,6 +11,7 @@ import br.unb.cic.tcc.quorum.ProposerReplica;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,9 +39,10 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         setQuorumSender(proposerSender);
 
         isColisionFastProposer = isColisionFastProposer(id);
+        createFile();
     }
 
-    public void phase1A(ProtocolMessage protocolMessage) {
+    public void phase1A(ProtocolMessage protocolMessage) throws IOException {
         CurrentInstanceProposer currentInstance;
         boolean enviaMsg = false;
         if(protocolMessage == null){
@@ -58,6 +60,8 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
             ProtocolMessage msgToSend = msgFromPhase1A(currentInstance);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
             sendMsgFromPhase1AToQuorum(quorumMessage);
+            printWriter.write("phase 1a executada corretamente a partir da msg: "+ protocolMessage+"\n");
+            printWriter.flush();
         }
     }
 
@@ -70,7 +74,7 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
                 currentInstance.getInstanciaAtual(), null);
     }
 
-    public synchronized void phase2Start(ProtocolMessage protocolMessage) {
+    public synchronized void phase2Start(ProtocolMessage protocolMessage) throws IOException {
         CurrentInstanceProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
 //        System.out.println("Coordinator começou a fase 2Start");
 
@@ -108,10 +112,12 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
             ProtocolMessage msgToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_2S, instanciaAtual.getRound(), getAgentId(), protocolMessage.getInstanciaExecucao(), instanciaAtual.getVmapCriadoOnRound(instanciaAtual.getRound()));
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, msgToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(agentsToSendMsg, quorumMessage);
+            printWriter.write("phase 2start executada corretamente a partir da msg: "+ protocolMessage+"\n");
+            printWriter.flush();
         }
     }
 
-    public void phase2A(ProtocolMessage protocolMessage) {
+    public void phase2A(ProtocolMessage protocolMessage) throws IOException {
 //        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2A");
         CurrentInstanceProposer instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         boolean condicao1 = protocolMessage.getProtocolMessageType() == ProtocolMessageType.MESSAGE_PROPOSE && protocolMessage.getMessage() != null;
@@ -146,10 +152,12 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 //                System.out.println("Proposer (" + getAgentId() + ") enviou msg to leaners");
                 getQuorumSender().sendTo(idLearners(), quorumMessage);
             }
+            printWriter.write("phase 2a executada corretamente a partir da msg: "+ protocolMessage+"\n");
+            printWriter.flush();
         }
     }
 
-    public void phase2Prepare(ProtocolMessage protocolMessage) {
+    public void phase2Prepare(ProtocolMessage protocolMessage) throws IOException {
 //        System.out.println("Proposer(" + getAgentId() + ") começou a fase 2Prepare");
         CurrentInstanceProposer currentInstance = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
 
@@ -163,6 +171,8 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
             } else {
                 currentInstance.saveProposedValueOnRound(protocolMessage.getRound(), null);
             }
+            printWriter.write("phase 2prepare executada corretamente a partir da msg: "+ protocolMessage+"\n");
+            printWriter.flush();
         }
     }
 
@@ -179,11 +189,13 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
         }
     }
 
-    public synchronized void propose(ClientMessage clientMessage) {
+    public synchronized void propose(ClientMessage clientMessage) throws IOException {
         ProtocolMessage protocolMessage = getMessageToPropose(clientMessage);
         QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessage, getQuorumSender().getProcessId());
 
         System.out.println("Proposer ("+getAgentId()+") propos o valor: "+clientMessage + " na instancia: "+protocolMessage.getInstanciaExecucao());
+        printWriter.write("Proposer ("+getAgentId()+") propos o valor: "+clientMessage + " na instancia: "+protocolMessage.getInstanciaExecucao()+"\n");
+        printWriter.flush();
         if(isColisionFastProposer){
             phase2A(protocolMessage);
         }else{
@@ -209,5 +221,10 @@ public class Proposer extends Agent<ProposerReplica, AgentSender> {
 
     protected ProposerReplica defineProposerReplica(int id, String host, int port) {
         return new ProposerReplica(id, host, port, this);
+    }
+
+    @Override
+    protected String fileName() {
+        return "respostas_proposer_" + getAgentId() + ".txt";
     }
 }

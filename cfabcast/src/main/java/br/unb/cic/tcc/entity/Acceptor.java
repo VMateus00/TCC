@@ -11,6 +11,7 @@ import br.unb.cic.tcc.quorum.AgentSender;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -28,13 +29,15 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
         idAgentes = agentsMap;
         setQuorumSender(acceptorSender);
         setQuorumReplica(acceptorReplica);
+
+        createFile();
     }
 
     protected AcceptorReplica defineAcceptorReplica(int id, String host, int port) {
         return new AcceptorReplica(id, host, port, this);
     }
 
-    public void phase1b(ProtocolMessage protocolMessage) {
+    public void phase1b(ProtocolMessage protocolMessage) throws IOException {
         CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
 
         if(instanciaAtual.getRound() < protocolMessage.getRound()
@@ -46,10 +49,12 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
             ProtocolMessage protocolMessageToSend = new ProtocolMessage(ProtocolMessageType.MESSAGE_1B, instanciaAtual.getRound(), getAgentId(), instanciaAtual.getInstanciaAtual(), message1B);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolMessageToSend, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idCoordinator(), quorumMessage);
+            printWriter.write("phase 1b executada a partir da msg: "+ protocolMessage+"\n");
+            printWriter.flush();
         }
     }
 
-    public void phase2b(ProtocolMessage protocolMessage) {
+    public void phase2b(ProtocolMessage protocolMessage) throws IOException {
         CurrentInstanceAcceptor instanciaAtual = getInstanciaAtual(protocolMessage.getInstanciaExecucao());
         Integer roundAceitouUltimaVez = instanciaAtual.getRoundAceitouUltimaVez();
 //        System.out.println("Acceptor(" + getAgentId() + ") começou a fase 2b - instancia:" +instanciaAtual.getInstanciaAtual());
@@ -95,6 +100,8 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
                 vMapLastRound.get(agentId).add(clientMessage.getClientMessage());
             }
 
+            printWriter.write("phase 2b executada corretamente a partir da msg: "+ protocolMessage+"\n");
+            printWriter.flush();
             ProtocolMessage protocolSendMsg = new ProtocolMessage(ProtocolMessageType.MESSAGE_2B, round, getAgentId(), instanciaAtual.getInstanciaAtual(), vMapLastRound);
             QuorumMessage quorumMessage = new QuorumMessage(MessageType.QUORUM_REQUEST, protocolSendMsg, getQuorumSender().getProcessId());
             getQuorumSender().sendTo(idLearners(), quorumMessage);
@@ -113,5 +120,10 @@ public class Acceptor extends Agent<AcceptorReplica, AgentSender> {
             instancias.add(currentInstance);
             return currentInstance;
         }
+    }
+
+    @Override
+    protected String fileName() {
+        return "respostas_acceptor_" + getAgentId() + ".txt";
     }
 }

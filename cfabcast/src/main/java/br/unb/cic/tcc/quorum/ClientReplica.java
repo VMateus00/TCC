@@ -6,6 +6,8 @@ import br.unb.cic.tcc.messages.ProtocolMessage;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
+import java.io.IOException;
+
 public class ClientReplica extends QuorumReplica {
 
     private Client client;
@@ -18,7 +20,11 @@ public class ClientReplica extends QuorumReplica {
     @Override
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
         ProtocolMessage message = (ProtocolMessage) quorumMessage.getMsg();
-        client.mostraRecebeuMensagem(message);
+        try {
+            client.mostraRecebeuMensagem(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return null;
     }

@@ -6,6 +6,8 @@ import br.unb.cic.tcc.messages.ProtocolMessageType;
 import quorum.communication.QuorumMessage;
 import quorum.core.QuorumReplica;
 
+import java.io.IOException;
+
 public class AcceptorReplica extends QuorumReplica {
 
     private Acceptor acceptor;
@@ -20,14 +22,18 @@ public class AcceptorReplica extends QuorumReplica {
     public QuorumMessage executeRequest(QuorumMessage quorumMessage) {
         ProtocolMessage message = (ProtocolMessage) quorumMessage.getMsg();
 
-        if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A){
-            acceptor.phase1b(message);
+        try {
+            if (message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_1A) {
+                acceptor.phase1b(message);
 //            System.out.println("Acceptor: "+ acceptor.getAgentId() + "chamou a phase1b");
 
-        } else if(message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
-                ||message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S){
-            acceptor.phase2b(message);
+            } else if (message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2A
+                    || message.getProtocolMessageType() == ProtocolMessageType.MESSAGE_2S) {
+                acceptor.phase2b(message);
 //            System.out.println("Acceptor: "+ acceptor.getAgentId() + "chamou a phase2b");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return null;
     }

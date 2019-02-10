@@ -6,6 +6,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import quorum.core.QuorumReplica;
 import quorum.core.QuorumSender;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +30,11 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
     private QR quorumReplica;
     private QS quorumSender;
     protected Map<String, Set<Integer>> idAgentes;
+
+    protected File agentControllerFile;
+    protected FileWriter fileWriter;
+//    protected PrintWriter printWriter;
+    protected BufferedWriter printWriter;
 
     private static Integer roundAtual = 1;
 
@@ -125,5 +135,23 @@ public abstract class Agent<QR extends QuorumReplica, QS extends QuorumSender> {
 
     public int[] idAcceptorsAndLearnersAndCFProposers(int currentProposer){
         return ArrayUtils.addAll(idLearners(), idAcceptorsAndCFProposers(currentProposer));
+    }
+
+    protected abstract String fileName();
+
+    protected void createFile(){
+        agentControllerFile = new File(fileName());
+        try {
+            if(agentControllerFile.createNewFile()){
+                System.out.println("File sucessifully created");
+            } else {
+                System.out.println("some problemm ocurred while creating file");
+            }
+            fileWriter = new FileWriter(agentControllerFile);
+//            printWriter = new PrintWriter(fileWriter);
+            printWriter = new BufferedWriter(fileWriter);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

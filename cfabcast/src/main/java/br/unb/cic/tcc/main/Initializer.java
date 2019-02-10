@@ -27,14 +27,14 @@ public abstract class Initializer{
 
     public void initializeQuoruns(){
         createQuorunsReadingFile();
-        initializeProtocol();
+//        initializeProtocol();
         System.out.println();
     }
 
     private void initializeProtocol() {
-        verificaTamanhoQuorumAcceptors();
+//        verificaTamanhoQuorumAcceptors();
         Proposer coordinator = Quoruns.getCoordinators().get(0);
-        coordinator.phase1A(null);
+//        coordinator.phase1A(null);
     }
 
     protected void verificaTamanhoQuorumAcceptors() {

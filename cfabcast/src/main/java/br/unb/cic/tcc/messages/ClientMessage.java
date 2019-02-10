@@ -13,14 +13,14 @@ public class ClientMessage implements Serializable, Comparable {
 
     private static Semaphore semaphore = new Semaphore(1);
 
-    public ClientMessage(String instructionToExecute, Integer idClient) {
-        this.instructionToExecute = instructionToExecute;
+    public ClientMessage(Integer idClient) {
         this.idClient = idClient;
 
         try {
             semaphore.acquire();
             ClientMessage.contadorId++;
             idMsg = ClientMessage.contadorId;
+            this.instructionToExecute = "Instrução " + idMsg;
             semaphore.release();
         } catch (InterruptedException e) {
            throw new RuntimeException("Ocorreu erro ao criar a msg");

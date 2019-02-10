@@ -10,10 +10,12 @@ import br.unb.cic.tcc.quorum.LearnerReplica;
 import quorum.communication.MessageType;
 import quorum.communication.QuorumMessage;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,6 +32,7 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         idAgentes = agentsMap;
         setQuorumSender(leanerSender);
         setQuorumReplica(learnerReplica);
+        createFile();
     }
 
     protected LearnerReplica defineLearnerReplica(int id, String host, int port) {
@@ -50,6 +53,7 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         }
 
         if(protocolMessagesFromAcceptors.size() >= QTD_MINIMA_RESPOSTAS_QUORUM_ACCEPTORS_CRASH && !currentInstance.getEnviouResultado()){
+//        if(protocolMessagesFromAcceptors.size() >= 1 && !currentInstance.getEnviouResultado()){
             currentInstance.setEnviouResultado(Boolean.TRUE);
             // ACTIONS:
 
@@ -84,6 +88,12 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
             getQuorumSender().sendTo(clientId, new QuorumMessage(MessageType.QUORUM_REQUEST, learnedMsg, getAgentId()));
 
             System.out.println("Learner (" + getAgentId() + ") - aprendeu na instancia ("+currentInstance.getInstanciaAtual()+"): " + learnedThisRound);
+            try {
+                printWriter.write("Learner (" + getAgentId() + ") - às "+System.currentTimeMillis()+"ms - aprendeu na instancia ("+currentInstance.getInstanciaAtual()+"): " + learnedThisRound+"\n");
+                printWriter.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -111,8 +121,13 @@ public class Learner extends Agent<LearnerReplica, AgentSender> {
         Set<ClientMessage> msgAprendida = new HashSet<>();
 
         learnedThisRound.forEach((k,v)->
-            msgAprendida.addAll(v.stream().filter(p -> p != null).distinct().collect(Collectors.toSet())));
+            msgAprendida.addAll(v.stream().filter(Objects::nonNull).distinct().collect(Collectors.toSet())));
 
         return msgAprendida.stream().collect(Collectors.toList()).get(0);
+    }
+
+    @Override
+    protected String fileName() {
+        return "respostas_learner_" + getAgentId() + ".txt";
     }
 }
